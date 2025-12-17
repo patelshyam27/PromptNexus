@@ -29,7 +29,7 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ currentUser, onSent }) 
   return (
     <div>
       {/* Floating button */}
-      <div className="fixed right-6 bottom-6 z-[60]">
+      <div className="fixed right-4 bottom-20 md:right-6 md:bottom-6 z-[60]">
         <button
           onClick={() => setOpen(true)}
           className="flex items-center gap-2 bg-primary-600 hover:bg-primary-500 text-white px-4 py-2 rounded-full shadow-lg"
