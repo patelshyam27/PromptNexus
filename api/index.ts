@@ -90,6 +90,61 @@ app.post('/api/feedback', async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`API listening on http://localhost:${PORT}`);
+// Interactions
+app.post('/api/prompts/:id/view', async (req, res) => {
+  try {
+    await prisma.prompt.update({ where: { id: req.params.id }, data: { viewCount: { increment: 1 } } });
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ success: false });
+  }
 });
+
+app.post('/api/prompts/:id/copy', async (req, res) => {
+  try {
+    await prisma.prompt.update({ where: { id: req.params.id }, data: { copyCount: { increment: 1 } } });
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ success: false });
+  }
+});
+
+app.delete('/api/prompts/:id', async (req, res) => {
+  try {
+    await prisma.prompt.delete({ where: { id: req.params.id } });
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ success: false });
+  }
+});
+
+app.post('/api/prompts/:id/rate', async (req, res) => {
+  const { rating, username } = req.body;
+  try {
+    const prompt = await prisma.prompt.findUnique({ where: { id: req.params.id } });
+    if (!prompt) return res.status(404).json({ success: false });
+
+    // Simple rating logic: re-calculate average
+    // In a real app we would store individual ratings in a separate table
+    // For now, we will just update the average with a weighted approximation or ignore for simplicity
+    // Actually, let's just increment ratingCount and update rating
+    const newCount = prompt.ratingCount + 1;
+    const newRating = ((prompt.rating * prompt.ratingCount) + rating) / newCount;
+
+    await prisma.prompt.update({
+      where: { id: req.params.id },
+      data: { rating: newRating, ratingCount: newCount }
+    });
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ success: false });
+  }
+});
+
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(PORT, () => {
+    console.log(`API listening on http://localhost:${PORT}`);
+  });
+}
+
+export default app;

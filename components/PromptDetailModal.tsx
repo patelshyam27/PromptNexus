@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, MoreHorizontal, Heart, MessageCircle, Send, Bookmark, Copy, Check, Star, ExternalLink, Trash2 } from 'lucide-react';
 import { Prompt, User, AIModel } from '../types';
-import { incrementCopyCount, toggleFavorite, isPromptFavorite, getUserRating, ratePrompt, deletePrompt, incrementViewCount } from '../services/storageService';
+import { viewPromptApi, copyPromptApi, ratePromptApi, deletePromptApi } from '../services/apiService';
 
 interface PromptDetailModalProps {
   prompt: Prompt | null;
@@ -19,10 +19,13 @@ const PromptDetailModal: React.FC<PromptDetailModalProps> = ({ prompt, user, cur
 
   useEffect(() => {
     if (prompt) {
-      setIsFavorite(isPromptFavorite(currentUser.username, prompt.id));
-      setUserRating(getUserRating(currentUser.username, prompt.id));
+      // isPromptFavorite not implemented in backend yet
+      setIsFavorite(false);
+      // getUserRating not implemented in backend yet, defaulting to 0
+      setUserRating(0);
+
       // Track view
-      incrementViewCount(prompt.id, currentUser.username);
+      viewPromptApi(prompt.id).catch(console.error);
     }
   }, [prompt, currentUser.username]);
 
@@ -31,7 +34,7 @@ const PromptDetailModal: React.FC<PromptDetailModalProps> = ({ prompt, user, cur
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(prompt.content);
-      incrementCopyCount(prompt.id, currentUser.username);
+      await copyPromptApi(prompt.id);
       setCopied(true);
       onRefresh();
       setTimeout(() => setCopied(false), 2000);
@@ -41,20 +44,19 @@ const PromptDetailModal: React.FC<PromptDetailModalProps> = ({ prompt, user, cur
   };
 
   const handleFavorite = () => {
-    const newState = toggleFavorite(currentUser.username, prompt.id);
-    setIsFavorite(newState);
-    onRefresh();
+    // TODO: Backend Favorites
+    alert("Favorites coming soon!");
   };
 
-  const handleRate = (rating: number) => {
+  const handleRate = async (rating: number) => {
     setUserRating(rating);
-    ratePrompt(currentUser.username, prompt.id, rating);
+    await ratePromptApi(prompt.id, rating, currentUser.username);
     onRefresh();
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (window.confirm('Are you sure you want to delete this prompt? This action cannot be undone.')) {
-      deletePrompt(prompt.id);
+      await deletePromptApi(prompt.id);
       onRefresh();
       onClose();
     }

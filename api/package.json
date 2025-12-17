@@ -2,9 +2,9 @@
   "name": "promptnexus-api",
   "version": "0.1.0",
   "private": true,
-  "main": "src/index.ts",
+  "main": "index.ts",
   "scripts": {
-    "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+    "dev": "ts-node-dev --respawn --transpile-only index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
     "prisma": "prisma"

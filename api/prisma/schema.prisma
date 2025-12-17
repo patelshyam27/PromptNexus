@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -19,7 +19,6 @@ model User {
   gender     String?
   createdAt  DateTime @default(now())
   prompts    Prompt[]
-  feedbacks  Feedback[]
 }
 
 model Prompt {

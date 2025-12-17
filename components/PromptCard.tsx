@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Copy, Eye, Tag, Check, Heart, Star, ExternalLink, MessageCircle, Trash2, Share2 } from 'lucide-react';
 import { Prompt, AIModel, User } from '../types';
-import { incrementCopyCount, toggleFavorite, isPromptFavorite, deletePrompt } from '../services/storageService';
+import { copyPromptApi, deletePromptApi } from '../services/apiService';
 
 interface PromptCardProps {
   prompt: Prompt;
@@ -14,17 +14,18 @@ interface PromptCardProps {
 const PromptCard: React.FC<PromptCardProps> = ({ prompt, currentUser, onRefresh, onAuthorClick, onClick }) => {
   const [copied, setCopied] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
-  const isAuthor = currentUser.username === prompt.author;
+  const isAuthor = currentUser.username === prompt.authorId || currentUser.username === prompt.author?.username; // Handle relation
 
   useEffect(() => {
-    setIsFavorite(isPromptFavorite(currentUser.username, prompt.id));
+    // Favorites not strictly implemented in backend MVP yet
+    setIsFavorite(false);
   }, [prompt.id, currentUser.username]);
 
   const handleCopy = async (e: React.MouseEvent) => {
     e.stopPropagation();
     try {
       await navigator.clipboard.writeText(prompt.content);
-      incrementCopyCount(prompt.id, currentUser.username);
+      await copyPromptApi(prompt.id);
       setCopied(true);
       onRefresh(); // Refresh stats in parent
       setTimeout(() => setCopied(false), 2000);
@@ -35,15 +36,14 @@ const PromptCard: React.FC<PromptCardProps> = ({ prompt, currentUser, onRefresh,
 
   const handleFavorite = (e: React.MouseEvent) => {
     e.stopPropagation();
-    const newState = toggleFavorite(currentUser.username, prompt.id);
-    setIsFavorite(newState);
-    onRefresh();
+    // TODO: Implement backend favorites
+    alert("Favorites coming soon!");
   };
 
-  const handleDelete = (e: React.MouseEvent) => {
+  const handleDelete = async (e: React.MouseEvent) => {
     e.stopPropagation();
     if (window.confirm('Are you sure you want to delete this prompt? This action cannot be undone.')) {
-      deletePrompt(prompt.id);
+      await deletePromptApi(prompt.id);
       onRefresh();
     }
   };
@@ -116,26 +116,26 @@ const PromptCard: React.FC<PromptCardProps> = ({ prompt, currentUser, onRefresh,
           {/* Fade effect at bottom of code block */}
           <div className="absolute bottom-0 left-0 w-full h-12 bg-gradient-to-t from-slate-900/10 to-transparent pointer-events-none"></div>
 
-                  {/* Share Button */}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      const shareUrl = `${window.location.origin}${window.location.pathname}?post=${prompt.id}`;
-                      if (navigator.share) {
-                        try { navigator.share({ title: prompt.title, text: prompt.description, url: shareUrl }); }
-                        catch (err) { navigator.clipboard.writeText(shareUrl); }
-                      } else {
-                        navigator.clipboard.writeText(shareUrl).then(() => {
-                          // small visual feedback could be added
-                          alert('Post link copied to clipboard');
-                        });
-                      }
-                    }}
-                    className="ml-2 p-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/30 transition-colors"
-                    title="Share"
-                  >
-                    <Share2 size={16} />
-                  </button>
+          {/* Share Button */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              const shareUrl = `${window.location.origin}${window.location.pathname}?post=${prompt.id}`;
+              if (navigator.share) {
+                try { navigator.share({ title: prompt.title, text: prompt.description, url: shareUrl }); }
+                catch (err) { navigator.clipboard.writeText(shareUrl); }
+              } else {
+                navigator.clipboard.writeText(shareUrl).then(() => {
+                  // small visual feedback could be added
+                  alert('Post link copied to clipboard');
+                });
+              }
+            }}
+            className="ml-2 p-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/30 transition-colors"
+            title="Share"
+          >
+            <Share2 size={16} />
+          </button>
         </div>
       </div>
 

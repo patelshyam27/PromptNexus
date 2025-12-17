@@ -3,7 +3,8 @@ import {
   Search, PlusSquare, Filter, Zap, Grid, Home, UserCircle, Menu, LogOut
 } from 'lucide-react';
 import { Prompt, PromptCategory, AIModel, FilterState, NewPromptInput, User } from './types';
-import { getPrompts, savePrompt, getCurrentUser, logoutUser } from './services/storageService';
+import { getPromptsApi, createPromptApi } from './services/apiService';
+import { getCurrentUser, logoutUser } from './services/storageService'; // Helper for local session
 import PromptCard from './components/PromptCard';
 import AddPromptModal from './components/AddPromptModal';
 // StatsChart and AdBanner imports removed as they are no longer used
@@ -52,16 +53,23 @@ function App() {
     }
 
     if (post) {
-      const all = getPrompts();
-      const p = all.find(x => x.id === post);
-      if (p) {
-        setActivePrompt(p);
-      }
+      // For shared links, we need to ensure prompts are loaded first or fetch specific
+      getPromptsApi().then(all => {
+        const p = all.find((x: Prompt) => x.id === post);
+        if (p) {
+          setActivePrompt(p);
+        }
+      });
     }
   }, []);
 
-  const refreshPrompts = () => {
-    setPrompts(getPrompts());
+  const refreshPrompts = async () => {
+    try {
+      const data = await getPromptsApi();
+      setPrompts(data || []);
+    } catch (e) {
+      console.error("Failed to load prompts", e);
+    }
   };
 
   const refreshUser = () => {
@@ -73,6 +81,8 @@ function App() {
 
   const handleAuthSuccess = (user: User) => {
     setCurrentUser(user);
+    // Persist session locally
+    localStorage.setItem('promptnexus_session_v2', JSON.stringify(user));
     if (user.isAdmin) {
       setActiveTab('admin');
     } else {
@@ -86,10 +96,15 @@ function App() {
     setCurrentUser(null);
   };
 
-  const handleAddPrompt = (input: NewPromptInput) => {
-    savePrompt(input);
-    refreshPrompts();
-    setActiveTab('home'); // Go home after post
+  const handleAddPrompt = async (input: NewPromptInput) => {
+    if (!currentUser) return;
+    try {
+      await createPromptApi({ ...input, authorId: currentUser.username }); // API expects authorId
+      refreshPrompts();
+      setActiveTab('home'); // Go home after post
+    } catch (e) {
+      alert("Failed to create prompt");
+    }
   };
 
   const navigateToProfile = (username: string) => {
