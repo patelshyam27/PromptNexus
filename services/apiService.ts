@@ -60,4 +60,8 @@ export const getUserApi = (username: string) => apiGet(`/users/${username}`);
 export const updateUserApi = (payload: any) => apiPut('/users/profile', payload);
 export const deleteUserApi = (username: string) => fetch(`${API_BASE}/users/${username}`, { method: 'DELETE' }).then(r => r.json());
 
-export default { registerUserApi, loginUserApi, getPromptsApi, createPromptApi, addFeedbackApi, viewPromptApi, copyPromptApi, ratePromptApi, deletePromptApi, getUsersApi, getUserApi, updateUserApi, deleteUserApi };
+export const getFeedbackApi = () => apiGet('/feedback');
+export const markFeedbackReadApi = (id: string, read: boolean) => apiPut(`/feedback/${id}/read`, { read });
+export const deleteFeedbackApi = (id: string) => fetch(`${API_BASE}/feedback/${id}`, { method: 'DELETE' }).then(r => r.json());
+
+export default { registerUserApi, loginUserApi, getPromptsApi, createPromptApi, addFeedbackApi, viewPromptApi, copyPromptApi, ratePromptApi, deletePromptApi, getUsersApi, getUserApi, updateUserApi, deleteUserApi, getFeedbackApi, markFeedbackReadApi, deleteFeedbackApi };

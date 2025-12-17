@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { User, Prompt } from '../types';
 import { getPromptsApi, deletePromptApi } from '../services/apiService';
-import { getUsersApi, deleteUserApi, updateUserApi } from '../services/apiService';
+import { getUsersApi, deleteUserApi, updateUserApi, getFeedbackApi, markFeedbackReadApi, deleteFeedbackApi } from '../services/apiService';
 import { Trash2, Users, FileText, Search, LogOut, Shield } from 'lucide-react';
 
 interface AdminDashboardProps {
@@ -24,8 +24,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentUser, onLogout }
             const promptsData = await getPromptsApi();
             setPrompts(Array.isArray(promptsData) ? promptsData : []);
 
-            // Feedback API not yet implemented for GET
-            setFeedback([]);
+            const feedbackData = await getFeedbackApi();
+            setFeedback(Array.isArray(feedbackData) ? feedbackData : []);
         } catch (e) {
             console.error("Failed to load admin data", e);
         }
@@ -264,7 +264,37 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentUser, onLogout }
                         </div>
                     ) : activeTab === 'feedback' ? (
                         <div className="p-4">
-                            <div className="text-slate-400">Feedback management API not yet integrated.</div>
+                            {feedback.length === 0 ? (
+                                <div className="text-slate-400">No feedback yet.</div>
+                            ) : (
+                                <div className="space-y-4">
+                                    {feedback.map(f => (
+                                        <div key={f.id} className={`p-4 rounded-lg border ${f.read ? 'border-slate-700 bg-slate-900' : 'border-yellow-700 bg-yellow-900/5'}`}>
+                                            <div className="flex items-start justify-between mb-2">
+                                                <div>
+                                                    <div className="font-bold text-white">{f.from}</div>
+                                                    <div className="text-xs text-slate-400">{new Date(f.createdAt).toLocaleString()}</div>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <button
+                                                        onClick={async () => { await markFeedbackReadApi(f.id, !f.read); refreshData(); }}
+                                                        className="text-xs px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors"
+                                                    >
+                                                        {f.read ? 'Mark Unread' : 'Mark Read'}
+                                                    </button>
+                                                    <button
+                                                        onClick={async () => { if (confirm('Delete this feedback?')) { await deleteFeedbackApi(f.id); refreshData(); } }}
+                                                        className="text-xs px-2 py-1 rounded bg-red-900/20 text-red-400 hover:bg-red-900/40 border border-red-900/50 transition-colors"
+                                                    >
+                                                        Delete
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div className="text-slate-200 whitespace-pre-wrap">{f.message}</div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     ) : (
                         <div className="overflow-x-auto">

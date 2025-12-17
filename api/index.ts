@@ -177,6 +177,40 @@ app.post('/api/feedback', async (req: Request, res: Response) => {
   }
 });
 
+// Admin: Get Feedback
+app.get('/api/feedback', async (_req: Request, res: Response) => {
+  try {
+    const feedback = await prisma.feedback.findMany({ orderBy: { createdAt: 'desc' } });
+    res.json(feedback);
+  } catch (e) {
+    console.error('Get feedback error', e);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Admin: Mark Feedback Read
+app.put('/api/feedback/:id/read', async (req: Request, res: Response) => {
+  const { read } = req.body;
+  try {
+    const fb = await prisma.feedback.update({ where: { id: req.params.id }, data: { read } });
+    res.json({ success: true, feedback: fb });
+  } catch (e) {
+    console.error('Mark read error', e);
+    res.status(500).json({ success: false });
+  }
+});
+
+// Admin: Delete Feedback
+app.delete('/api/feedback/:id', async (req: Request, res: Response) => {
+  try {
+    await prisma.feedback.delete({ where: { id: req.params.id } });
+    res.json({ success: true });
+  } catch (e) {
+    console.error('Delete feedback error', e);
+    res.status(500).json({ success: false });
+  }
+});
+
 // Interactions
 app.post('/api/prompts/:id/view', async (req: Request, res: Response) => {
   try {
