@@ -75,7 +75,7 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthSuccess }) => {
       }
     } catch (err: any) {
       console.error(err);
-      setError(err?.message || 'An error occurred. Please try again.');
+      setError(err?.message || (typeof err === 'object' ? JSON.stringify(err) : String(err)) || 'An error occurred. Please try again.');
     }
     setIsLoading(false);
   };

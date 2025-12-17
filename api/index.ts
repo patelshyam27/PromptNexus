@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import dotenv from 'dotenv';
@@ -14,10 +14,10 @@ app.use(cors({ origin: true }));
 app.use(bodyParser.json());
 
 // Health
-app.get('/api/health', (_req, res) => res.json({ ok: true }));
+app.get('/api/health', (_req: Request, res: Response) => res.json({ ok: true }));
 
 // Register
-app.post('/api/register', async (req, res) => {
+app.post('/api/register', async (req: Request, res: Response) => {
   const { username, password, displayName, bio, gender, avatarUrl } = req.body;
   if (!username || !password || !displayName) return res.status(400).json({ success: false, message: 'Missing fields' });
   try {
@@ -51,7 +51,7 @@ app.post('/api/register', async (req, res) => {
 });
 
 // Login
-app.post('/api/login', async (req, res) => {
+app.post('/api/login', async (req: Request, res: Response) => {
   const { username, password } = req.body;
   if (!username || !password) return res.status(400).json({ success: false, message: 'Missing fields' });
   try {
@@ -69,7 +69,7 @@ app.post('/api/login', async (req, res) => {
 });
 
 // Get prompts
-app.get('/api/prompts', async (_req, res) => {
+app.get('/api/prompts', async (_req: Request, res: Response) => {
   try {
     const prompts = await prisma.prompt.findMany({ orderBy: { createdAt: 'desc' }, include: { author: true } });
     res.json(prompts);
@@ -80,7 +80,7 @@ app.get('/api/prompts', async (_req, res) => {
 });
 
 // Create prompt
-app.post('/api/prompts', async (req, res) => {
+app.post('/api/prompts', async (req: Request, res: Response) => {
   const { title, content, model, tags, authorId } = req.body;
   if (!title || !content || !authorId) return res.status(400).json({ success: false, message: 'Missing fields' });
   try {
@@ -93,7 +93,7 @@ app.post('/api/prompts', async (req, res) => {
 });
 
 // Feedback
-app.post('/api/feedback', async (req, res) => {
+app.post('/api/feedback', async (req: Request, res: Response) => {
   const { from, message } = req.body;
   if (!from || !message) return res.status(400).json({ success: false, message: 'Missing fields' });
   try {
@@ -106,7 +106,7 @@ app.post('/api/feedback', async (req, res) => {
 });
 
 // Interactions
-app.post('/api/prompts/:id/view', async (req, res) => {
+app.post('/api/prompts/:id/view', async (req: Request, res: Response) => {
   try {
     await prisma.prompt.update({ where: { id: req.params.id }, data: { viewCount: { increment: 1 } } });
     res.json({ success: true });
@@ -115,7 +115,7 @@ app.post('/api/prompts/:id/view', async (req, res) => {
   }
 });
 
-app.post('/api/prompts/:id/copy', async (req, res) => {
+app.post('/api/prompts/:id/copy', async (req: Request, res: Response) => {
   try {
     await prisma.prompt.update({ where: { id: req.params.id }, data: { copyCount: { increment: 1 } } });
     res.json({ success: true });
@@ -124,7 +124,7 @@ app.post('/api/prompts/:id/copy', async (req, res) => {
   }
 });
 
-app.delete('/api/prompts/:id', async (req, res) => {
+app.delete('/api/prompts/:id', async (req: Request, res: Response) => {
   try {
     await prisma.prompt.delete({ where: { id: req.params.id } });
     res.json({ success: true });
@@ -133,7 +133,7 @@ app.delete('/api/prompts/:id', async (req, res) => {
   }
 });
 
-app.post('/api/prompts/:id/rate', async (req, res) => {
+app.post('/api/prompts/:id/rate', async (req: Request, res: Response) => {
   const { rating, username } = req.body;
   try {
     const prompt = await prisma.prompt.findUnique({ where: { id: req.params.id } });
