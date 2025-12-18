@@ -198,175 +198,177 @@ app.post('/api/prompts', async (req: Request, res: Response) => {
     console.error('Create prompt error', e);
     res.status(500).json({ success: false, message: 'Server error' });
   }
-  // Update prompt
-  app.put('/api/prompts/:id', async (req: Request, res: Response) => {
-    const { id } = req.params;
-    const { title, content, model, tags, authorId } = req.body;
-    // Note: authorId here is used to verify ownership
-    try {
-      const existing = await prisma.prompt.findUnique({ where: { id } });
-      if (!existing) return res.status(404).json({ success: false, message: 'Prompt not found' });
-      if (existing.authorId !== authorId) return res.status(403).json({ success: false, message: 'Unauthorized' });
+});
 
-      const tagsString = Array.isArray(tags) ? tags.join(',') : (tags || null);
-      const updated = await prisma.prompt.update({
-        where: { id },
-        data: {
-          title,
-          content,
-          model: model || null,
-          tags: tagsString
-        }
-      });
+// Update prompt
+app.put('/api/prompts/:id', async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { title, content, model, tags, authorId } = req.body;
+  // Note: authorId here is used to verify ownership
+  try {
+    const existing = await prisma.prompt.findUnique({ where: { id } });
+    if (!existing) return res.status(404).json({ success: false, message: 'Prompt not found' });
+    if (existing.authorId !== authorId) return res.status(403).json({ success: false, message: 'Unauthorized' });
 
-      // Format response matching get/create
-      const formatted = {
-        ...updated,
-        tags: updated.tags ? updated.tags.split(',').filter(Boolean) : [],
-        author: authorId // maintain string format
-      };
+    const tagsString = Array.isArray(tags) ? tags.join(',') : (tags || null);
+    const updated = await prisma.prompt.update({
+      where: { id },
+      data: {
+        title,
+        content,
+        model: model || null,
+        tags: tagsString
+      }
+    });
 
-      res.json({ success: true, prompt: formatted });
-    } catch (e) {
-      console.error('Update prompt error', e);
-      res.status(500).json({ success: false, message: 'Server error' });
-    }
-  });
+    // Format response matching get/create
+    const formatted = {
+      ...updated,
+      tags: updated.tags ? updated.tags.split(',').filter(Boolean) : [],
+      author: authorId // maintain string format
+    };
 
-  // Feedback
-  app.post('/api/feedback', async (req: Request, res: Response) => {
-    const { from, message } = req.body;
-    if (!from || !message) return res.status(400).json({ success: false, message: 'Missing fields' });
-    try {
-      const fb = await prisma.feedback.create({ data: { from, message } });
-      res.json({ success: true, feedback: fb });
-    } catch (e) {
-      console.error('Feedback error', e);
-      res.status(500).json({ success: false, message: 'Server error' });
-    }
-  });
+    res.json({ success: true, prompt: formatted });
+  } catch (e) {
+    console.error('Update prompt error', e);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
 
-  // Admin: Get Feedback
-  app.get('/api/feedback', async (_req: Request, res: Response) => {
-    try {
-      const feedback = await prisma.feedback.findMany({ orderBy: { createdAt: 'desc' } });
-      // Explicitly format date for frontend
-      const formatted = feedback.map(f => ({
-        ...f,
-        createdAt: f.createdAt.toISOString() // Ensure standard ISO string
-      }));
-      res.json(formatted);
-    } catch (e) {
-      console.error('Get feedback error', e);
-      res.status(500).json({ message: 'Server error' });
-    }
-  });
+// Feedback
+app.post('/api/feedback', async (req: Request, res: Response) => {
+  const { from, message } = req.body;
+  if (!from || !message) return res.status(400).json({ success: false, message: 'Missing fields' });
+  try {
+    const fb = await prisma.feedback.create({ data: { from, message } });
+    res.json({ success: true, feedback: fb });
+  } catch (e) {
+    console.error('Feedback error', e);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
 
-  // Admin: Mark Feedback Read
-  app.put('/api/feedback/:id/read', async (req: Request, res: Response) => {
-    const { read } = req.body;
-    try {
-      const fb = await prisma.feedback.update({ where: { id: req.params.id }, data: { read } });
-      res.json({ success: true, feedback: fb });
-    } catch (e) {
-      console.error('Mark read error', e);
-      res.status(500).json({ success: false });
-    }
-  });
+// Admin: Get Feedback
+app.get('/api/feedback', async (_req: Request, res: Response) => {
+  try {
+    const feedback = await prisma.feedback.findMany({ orderBy: { createdAt: 'desc' } });
+    // Explicitly format date for frontend
+    const formatted = feedback.map(f => ({
+      ...f,
+      createdAt: f.createdAt.toISOString() // Ensure standard ISO string
+    }));
+    res.json(formatted);
+  } catch (e) {
+    console.error('Get feedback error', e);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
 
-  // Admin: Delete Feedback
-  app.delete('/api/feedback/:id', async (req: Request, res: Response) => {
-    try {
-      await prisma.feedback.delete({ where: { id: req.params.id } });
-      res.json({ success: true });
-    } catch (e) {
-      console.error('Delete feedback error', e);
-      res.status(500).json({ success: false });
-    }
-  });
+// Admin: Mark Feedback Read
+app.put('/api/feedback/:id/read', async (req: Request, res: Response) => {
+  const { read } = req.body;
+  try {
+    const fb = await prisma.feedback.update({ where: { id: req.params.id }, data: { read } });
+    res.json({ success: true, feedback: fb });
+  } catch (e) {
+    console.error('Mark read error', e);
+    res.status(500).json({ success: false });
+  }
+});
 
-  // Interactions
-  app.post('/api/prompts/:id/view', async (req: Request, res: Response) => {
-    try {
-      await prisma.prompt.update({ where: { id: req.params.id }, data: { viewCount: { increment: 1 } } });
-      res.json({ success: true });
-    } catch (e) {
-      res.status(500).json({ success: false });
-    }
-  });
+// Admin: Delete Feedback
+app.delete('/api/feedback/:id', async (req: Request, res: Response) => {
+  try {
+    await prisma.feedback.delete({ where: { id: req.params.id } });
+    res.json({ success: true });
+  } catch (e) {
+    console.error('Delete feedback error', e);
+    res.status(500).json({ success: false });
+  }
+});
 
-  app.post('/api/prompts/:id/copy', async (req: Request, res: Response) => {
-    try {
-      await prisma.prompt.update({ where: { id: req.params.id }, data: { copyCount: { increment: 1 } } });
-      res.json({ success: true });
-    } catch (e) {
-      res.status(500).json({ success: false });
-    }
-  });
+// Interactions
+app.post('/api/prompts/:id/view', async (req: Request, res: Response) => {
+  try {
+    await prisma.prompt.update({ where: { id: req.params.id }, data: { viewCount: { increment: 1 } } });
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ success: false });
+  }
+});
 
-  app.delete('/api/prompts/:id', async (req: Request, res: Response) => {
-    try {
-      await prisma.prompt.delete({ where: { id: req.params.id } });
-      res.json({ success: true });
-    } catch (e) {
-      res.status(500).json({ success: false });
-    }
-  });
+app.post('/api/prompts/:id/copy', async (req: Request, res: Response) => {
+  try {
+    await prisma.prompt.update({ where: { id: req.params.id }, data: { copyCount: { increment: 1 } } });
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ success: false });
+  }
+});
 
-  app.post('/api/prompts/:id/rate', async (req: Request, res: Response) => {
-    const { rating, username } = req.body;
-    try {
-      const prompt = await prisma.prompt.findUnique({ where: { id: req.params.id } });
-      if (!prompt) return res.status(404).json({ success: false });
+app.delete('/api/prompts/:id', async (req: Request, res: Response) => {
+  try {
+    await prisma.prompt.delete({ where: { id: req.params.id } });
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ success: false });
+  }
+});
 
-      // Simple rating logic: re-calculate average
-      const newCount = prompt.ratingCount + 1;
-      const newRating = ((prompt.rating * prompt.ratingCount) + rating) / newCount;
+app.post('/api/prompts/:id/rate', async (req: Request, res: Response) => {
+  const { rating, username } = req.body;
+  try {
+    const prompt = await prisma.prompt.findUnique({ where: { id: req.params.id } });
+    if (!prompt) return res.status(404).json({ success: false });
 
-      await prisma.prompt.update({
-        where: { id: req.params.id },
-        data: { rating: newRating, ratingCount: newCount }
-      });
-      res.json({ success: true });
-    } catch (e) {
-      res.status(500).json({ success: false });
-    }
-  });
+    // Simple rating logic: re-calculate average
+    const newCount = prompt.ratingCount + 1;
+    const newRating = ((prompt.rating * prompt.ratingCount) + rating) / newCount;
 
-  // Toggle Favorite
-  app.post('/api/prompts/:id/favorite', async (req: Request, res: Response) => {
-    const { userId } = req.body;
-    const { id } = req.params;
-    if (!userId) return res.status(400).json({ success: false, message: 'Missing user ID' });
+    await prisma.prompt.update({
+      where: { id: req.params.id },
+      data: { rating: newRating, ratingCount: newCount }
+    });
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ success: false });
+  }
+});
 
-    try {
-      const existing = await prisma.favorite.findUnique({
+// Toggle Favorite
+app.post('/api/prompts/:id/favorite', async (req: Request, res: Response) => {
+  const { userId } = req.body;
+  const { id } = req.params;
+  if (!userId) return res.status(400).json({ success: false, message: 'Missing user ID' });
+
+  try {
+    const existing = await prisma.favorite.findUnique({
+      where: { userId_promptId: { userId, promptId: id } }
+    });
+
+    if (existing) {
+      // Unfavorite
+      await prisma.favorite.delete({
         where: { userId_promptId: { userId, promptId: id } }
       });
-
-      if (existing) {
-        // Unfavorite
-        await prisma.favorite.delete({
-          where: { userId_promptId: { userId, promptId: id } }
-        });
-        res.json({ success: true, favorited: false });
-      } else {
-        // Favorite
-        await prisma.favorite.create({
-          data: { userId, promptId: id }
-        });
-        res.json({ success: true, favorited: true });
-      }
-    } catch (e) {
-      console.error('Favorite error', e);
-      res.status(500).json({ success: false, message: 'Server error' });
+      res.json({ success: true, favorited: false });
+    } else {
+      // Favorite
+      await prisma.favorite.create({
+        data: { userId, promptId: id }
+      });
+      res.json({ success: true, favorited: true });
     }
-  });
-
-  if (process.env.NODE_ENV !== 'production') {
-    app.listen(PORT, () => {
-      console.log(`API listening on http://localhost:${PORT}`);
-    });
+  } catch (e) {
+    console.error('Favorite error', e);
+    res.status(500).json({ success: false, message: 'Server error' });
   }
+});
 
-  export default app;
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(PORT, () => {
+    console.log(`API listening on http://localhost:${PORT}`);
+  });
+}
+
+export default app;
