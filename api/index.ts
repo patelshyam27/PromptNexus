@@ -168,6 +168,31 @@ app.delete('/api/users/:username', async (req: Request, res: Response) => {
   }
 });
 
+// Diagnostics
+app.get('/api/test-db', async (req: Request, res: Response) => {
+  try {
+    await prisma.$connect();
+    const userCount = await prisma.user.count();
+    const promptCount = await prisma.prompt.count();
+    const prompts = await prisma.prompt.findMany({ take: 3 });
+    res.json({
+      status: 'success',
+      message: 'Database connection established',
+      counts: { users: userCount, prompts: promptCount },
+      sample: prompts
+    });
+  } catch (e: any) {
+    console.error('DB Connection Test Failed', e);
+    res.status(500).json({
+      status: 'error',
+      message: e.message,
+      code: e.code,
+      meta: e.meta,
+      stack: e.stack
+    });
+  }
+});
+
 // Get prompts
 app.get('/api/prompts', async (req: Request, res: Response) => {
   try {
