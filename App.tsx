@@ -8,6 +8,7 @@ import { getCurrentUser, logoutUser } from './services/storageService'; // Helpe
 import PromptCard from './components/PromptCard';
 import AddPromptModal from './components/AddPromptModal';
 import GoogleAd from './components/GoogleAd';
+import MoreMenu from './components/MoreMenu';
 // StatsChart and AdBanner imports removed as they are no longer used
 import UserProfile from './components/UserProfile';
 import ExploreView from './components/ExploreView';
@@ -22,6 +23,7 @@ function App() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [prompts, setPrompts] = useState<Prompt[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
   const [activePrompt, setActivePrompt] = useState<Prompt | null>(null);
   const [editingPrompt, setEditingPrompt] = useState<Prompt | null>(null);
   const [activeTab, setActiveTab] = useState<ViewState>('home');
@@ -222,6 +224,22 @@ function App() {
             <NavItem tab="profile" icon={UserCircle} label="Profile" />
           </div>
 
+          <div className="relative">
+            <button
+              onClick={() => setIsMoreMenuOpen(!isMoreMenuOpen)}
+              className={`flex items-center gap-4 p-3 rounded-xl transition-all duration-200 group w-full ${isMoreMenuOpen ? 'text-white' : 'text-slate-400 hover:text-white hover:bg-slate-900/50'}`}
+            >
+              <Menu size={26} className={`transition-transform duration-200 ${isMoreMenuOpen ? 'scale-110' : 'group-hover:scale-110'}`} strokeWidth={2} />
+              <span className="hidden md:block text-base font-normal">More</span>
+            </button>
+            <MoreMenu
+              isOpen={isMoreMenuOpen}
+              onClose={() => setIsMoreMenuOpen(false)}
+              onLogout={handleLogout}
+              currentUser={currentUser}
+            />
+          </div>
+
           {currentUser?.isAdmin && (
             <div>
               <NavItem tab="admin" icon={Zap} label="Admin" onClick={() => setActiveTab('admin')} />
@@ -229,14 +247,9 @@ function App() {
           )}
         </div>
 
-        <div className="mt-auto pt-6 border-t border-slate-900">
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-4 p-3 text-slate-400 hover:text-red-400 transition-colors w-full"
-          >
-            <LogOut size={26} />
-            <span className="hidden lg:block">Log Out</span>
-          </button>
+        {/* Bottom Logout removed, moved to More Menu */}
+        <div className="mt-auto hidden">
+          {/* Space holder if needed */}
         </div>
       </nav>
 
