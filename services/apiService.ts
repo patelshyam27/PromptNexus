@@ -64,6 +64,7 @@ export const deleteUserApi = (username: string) => fetch(`${API_BASE}/users/${us
 export const getFeedbackApi = () => apiGet('/feedback');
 export const markFeedbackReadApi = (id: string, read: boolean) => apiPut(`/feedback/${id}/read`, { read });
 export const deleteFeedbackApi = (id: string) => fetch(`${API_BASE}/feedback/${id}`, { method: 'DELETE' }).then(r => r.json());
+export const verifyPasswordApi = (payload: { username: string, password: string }) => apiPost('/verify-password', payload);
 export const toggleFavoriteApi = (id: string, userId: string) => apiPost(`/prompts/${id}/favorite`, { userId });
 
 export const getSettingApi = async (key: string) => {

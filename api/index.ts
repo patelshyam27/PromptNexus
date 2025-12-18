@@ -70,6 +70,21 @@ app.post('/api/login', async (req: Request, res: Response) => {
   }
 });
 
+// Verify Password (Protected)
+app.post('/api/verify-password', async (req: Request, res: Response) => {
+  const { username, password } = req.body;
+  if (!username || !password) return res.status(400).json({ success: false });
+  try {
+    const user = await prisma.user.findUnique({ where: { username } });
+    if (!user) return res.status(404).json({ success: false });
+
+    const ok = await bcrypt.compare(password, user.password);
+    res.json({ success: ok });
+  } catch (e) {
+    res.status(500).json({ success: false });
+  }
+});
+
 // Admin: Get all users
 app.get('/api/users', async (_req: Request, res: Response) => {
   try {

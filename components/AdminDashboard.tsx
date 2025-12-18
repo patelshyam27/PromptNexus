@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { User, Prompt } from '../types';
 import { getPromptsApi, deletePromptApi } from '../services/apiService';
 import { getUsersApi, deleteUserApi, updateUserApi, getFeedbackApi, markFeedbackReadApi, deleteFeedbackApi, getSettingApi, updateSettingApi } from '../services/apiService';
-import { Trash2, Users, FileText, Search, LogOut, Shield, Settings, Save, AlertCircle } from 'lucide-react';
+import { Trash2, Users, FileText, Search, LogOut, Shield, Settings, Save, AlertCircle, Database, Download } from 'lucide-react';
+import PasswordChallengeModal from './PasswordChallengeModal';
 
 interface AdminDashboardProps {
     currentUser: User;
@@ -10,7 +11,7 @@ interface AdminDashboardProps {
 }
 
 const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentUser, onLogout }) => {
-    const [activeTab, setActiveTab] = useState<'users' | 'prompts' | 'feedback' | 'settings'>('users');
+    const [activeTab, setActiveTab] = useState<'users' | 'prompts' | 'feedback' | 'settings' | 'database'>('users');
     const [users, setUsers] = useState<User[]>([]);
     const [prompts, setPrompts] = useState<Prompt[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
@@ -19,6 +20,11 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentUser, onLogout }
     // Settings State
     const [feedbackUrl, setFeedbackUrl] = useState('');
     const [savingSettings, setSavingSettings] = useState(false);
+
+    // Security Challenge State
+    const [challengeOpen, setChallengeOpen] = useState(false);
+    const [challengeAction, setChallengeAction] = useState('');
+    const [challengeCallback, setChallengeCallback] = useState<(() => void) | null>(null);
 
     const refreshData = async () => {
         try {
@@ -44,27 +50,61 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentUser, onLogout }
         refreshData();
     }, []);
 
-    const handleSaveSettings = async () => {
-        setSavingSettings(true);
-        try {
-            console.log('Sending update with authorId:', currentUser.id);
-            const res = await updateSettingApi('feedbackUrl', feedbackUrl, currentUser.id);
-            if (res.success) {
-                alert('Settings saved successfully');
-            } else {
-                alert('Failed to save settings: ' + (res.message || 'Unknown error'));
-            }
-        } catch (e) {
-            alert('Error saving settings');
-        } finally {
-            setSavingSettings(false);
+    const triggerChallenge = (actionName: string, onSuccess: () => void) => {
+        setChallengeAction(actionName);
+        setChallengeCallback(() => onSuccess);
+        setChallengeOpen(true);
+    };
+
+    const handleChallengeSuccess = () => {
+        if (challengeCallback) {
+            challengeCallback();
+            setChallengeCallback(null);
         }
     };
 
-    const handleDeleteUser = async (username: string) => {
+    const handleSaveSettings = () => {
+        triggerChallenge('Save Settings', async () => {
+            setSavingSettings(true);
+            try {
+                const res = await updateSettingApi('feedbackUrl', feedbackUrl, currentUser.id);
+                if (res.success) {
+                    alert('Settings saved successfully');
+                } else {
+                    alert('Failed to save settings: ' + (res.message || 'Unknown error'));
+                }
+            } catch (e) {
+                alert('Error saving settings');
+            } finally {
+                setSavingSettings(false);
+            }
+        });
+    };
+
+    const handleDeleteUser = (username: string) => {
         if (window.confirm(`Delete user ${username}?`)) {
-            await deleteUserApi(username);
-            refreshData();
+            triggerChallenge(`Delete User ${username}`, async () => {
+                await deleteUserApi(username);
+                refreshData();
+            });
+        }
+    };
+
+    const handleDeletePrompt = (id: string) => {
+        if (window.confirm('Delete this prompt?')) {
+            triggerChallenge('Delete Prompt', async () => {
+                await deletePromptApi(id);
+                refreshData();
+            });
+        }
+    };
+
+    const handleDeleteFeedback = (id: string) => {
+        if (window.confirm('Delete this feedback?')) {
+            triggerChallenge('Delete Feedback', async () => {
+                await deleteFeedbackApi(id);
+                refreshData();
+            });
         }
     };
 
@@ -77,8 +117,10 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentUser, onLogout }
     };
 
     const handleEditUser = async (user: User) => {
+        // Edit User Info doesn't strictly need password challange as it's less destructive, but good practice.
+        // Skipping for now to avoid too much friction on minor edits, or can add if requested.
         const newDisplay = prompt('Edit display name', user.displayName);
-        if (newDisplay === null) return; // cancelled
+        if (newDisplay === null) return;
         const newBio = prompt('Edit bio', user.bio || '');
         if (newBio === null) return;
 
@@ -90,11 +132,14 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentUser, onLogout }
         refreshData();
     };
 
-    const handleDeletePrompt = async (id: string) => {
-        if (window.confirm('Delete this prompt?')) {
-            await deletePromptApi(id);
-            refreshData();
-        }
+    const handleExport = (data: any[], filename: string) => {
+        const jsonString = `data:text/json;chatset=utf-8,${encodeURIComponent(
+            JSON.stringify(data, null, 2)
+        )}`;
+        const link = document.createElement("a");
+        link.href = jsonString;
+        link.download = `${filename}_${new Date().toISOString().slice(0, 10)}.json`;
+        link.click();
     };
 
     const filteredUsers = users.filter(u => u.username.toLowerCase().includes(searchTerm.toLowerCase()));
@@ -102,6 +147,14 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentUser, onLogout }
 
     return (
         <div className="min-h-screen bg-slate-950 text-slate-200 font-sans p-4 md:p-8 overflow-x-hidden">
+            <PasswordChallengeModal
+                isOpen={challengeOpen}
+                onClose={() => setChallengeOpen(false)}
+                onSuccess={handleChallengeSuccess}
+                username={currentUser.username}
+                actionName={challengeAction}
+            />
+
             <div className="max-w-7xl mx-auto w-full">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
                     <div className="flex items-center gap-3">
@@ -178,10 +231,17 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentUser, onLogout }
                         Settings
                         {activeTab === 'settings' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-slate-500" />}
                     </button>
+                    <button
+                        onClick={() => setActiveTab('database')}
+                        className={`pb-3 px-4 font-semibold text-sm transition-colors whitespace-nowrap relative ${activeTab === 'database' ? 'text-white' : 'text-slate-500 hover:text-slate-300'}`}
+                    >
+                        Database
+                        {activeTab === 'database' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-amber-500" />}
+                    </button>
                 </div>
 
                 {/* Search */}
-                {activeTab !== 'settings' && (
+                {(activeTab === 'users' || activeTab === 'prompts') && (
                     <div className="relative mb-6">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={20} />
                         <input
@@ -242,7 +302,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentUser, onLogout }
                                                     Edit
                                                 </button>
 
-                                                {/* Removed Demote/Promote buttons for cleaner UI as per user desire for 'proper view' - kept delete */}
                                                 {!user.isAdmin && (
                                                     <button
                                                         onClick={() => handleDeleteUser(user.username)}
@@ -322,7 +381,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentUser, onLogout }
                                                         {f.read ? 'Mark Unread' : 'Mark Read'}
                                                     </button>
                                                     <button
-                                                        onClick={async () => { if (confirm('Delete this feedback?')) { await deleteFeedbackApi(f.id); refreshData(); } }}
+                                                        onClick={() => handleDeleteFeedback(f.id)}
                                                         className="text-xs px-2 py-1 rounded bg-red-900/20 text-red-400 hover:bg-red-900/40 border border-red-900/50 transition-colors"
                                                     >
                                                         Delete
@@ -335,8 +394,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentUser, onLogout }
                                 </div>
                             )}
                         </div>
-                    ) : (
-                        // Settings Tab
+                    ) : activeTab === 'settings' ? (
                         <div className="p-6">
                             <h2 className="text-xl font-bold text-white mb-6">System Configuration</h2>
 
@@ -382,6 +440,79 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentUser, onLogout }
                                     </p>
                                     <button className="px-4 py-2 bg-red-900/20 hover:bg-red-900/40 text-red-400 border border-red-900/50 rounded-lg text-sm transition-colors">
                                         Clear System Cache
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    ) : (
+                        // Database Tab
+                        <div className="p-6">
+                            <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-3">
+                                <Database className="text-amber-500" /> Database Management
+                            </h2>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="bg-slate-900/50 p-6 rounded-xl border border-slate-800 hover:border-slate-700 transition-colors">
+                                    <div className="flex justify-between items-start mb-4">
+                                        <div>
+                                            <h3 className="text-lg font-bold text-white">Users</h3>
+                                            <p className="text-slate-400 text-sm">{users.length} records</p>
+                                        </div>
+                                        <div className="bg-blue-500/10 p-2 rounded-lg"><Users className="text-blue-500" /></div>
+                                    </div>
+                                    <button
+                                        onClick={() => handleExport(users, 'users_export')}
+                                        className="w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                                    >
+                                        <Download size={16} /> Export JSON
+                                    </button>
+                                </div>
+
+                                <div className="bg-slate-900/50 p-6 rounded-xl border border-slate-800 hover:border-slate-700 transition-colors">
+                                    <div className="flex justify-between items-start mb-4">
+                                        <div>
+                                            <h3 className="text-lg font-bold text-white">Prompts</h3>
+                                            <p className="text-slate-400 text-sm">{prompts.length} records</p>
+                                        </div>
+                                        <div className="bg-purple-500/10 p-2 rounded-lg"><FileText className="text-purple-500" /></div>
+                                    </div>
+                                    <button
+                                        onClick={() => handleExport(prompts, 'prompts_export')}
+                                        className="w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                                    >
+                                        <Download size={16} /> Export JSON
+                                    </button>
+                                </div>
+
+                                <div className="bg-slate-900/50 p-6 rounded-xl border border-slate-800 hover:border-slate-700 transition-colors">
+                                    <div className="flex justify-between items-start mb-4">
+                                        <div>
+                                            <h3 className="text-lg font-bold text-white">Feedback</h3>
+                                            <p className="text-slate-400 text-sm">{feedback.length} records</p>
+                                        </div>
+                                        <div className="bg-green-500/10 p-2 rounded-lg"><Users className="text-green-500" /></div>
+                                    </div>
+                                    <button
+                                        onClick={() => handleExport(feedback, 'feedback_export')}
+                                        className="w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                                    >
+                                        <Download size={16} /> Export JSON
+                                    </button>
+                                </div>
+
+                                <div className="bg-slate-900/50 p-6 rounded-xl border border-slate-800 hover:border-slate-700 transition-colors">
+                                    <div className="flex justify-between items-start mb-4">
+                                        <div>
+                                            <h3 className="text-lg font-bold text-white">Full Backup</h3>
+                                            <p className="text-slate-400 text-sm">Export all system data</p>
+                                        </div>
+                                        <div className="bg-amber-500/10 p-2 rounded-lg"><Database className="text-amber-500" /></div>
+                                    </div>
+                                    <button
+                                        onClick={() => handleExport({ users, prompts, feedback, systemSettings: { feedbackUrl } }, 'full_backup')}
+                                        className="w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                                    >
+                                        <Download size={16} /> Export Full Backup
                                     </button>
                                 </div>
                             </div>
