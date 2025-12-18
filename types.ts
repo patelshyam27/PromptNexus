@@ -19,6 +19,7 @@ export enum AIModel {
 }
 
 export interface User {
+  id: string; // UUID from DB
   username: string;
   displayName: string;
   bio: string;
@@ -48,6 +49,7 @@ export interface Prompt {
   model: string;
   modelUrl?: string;
   author: string; // corresponds to User.username
+  authorId: string; // UUID
   viewCount: number;
   copyCount: number;
   rating: number;      // Average rating (0-5)
