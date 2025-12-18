@@ -32,15 +32,30 @@ function App() {
     search: '',
   });
 
-  // Initialize Auth and Data
+  // On initial load, check for shared links and refresh user session
   useEffect(() => {
     const user = getCurrentUser();
     if (user) {
       setCurrentUser(user);
       setSelectedProfileUser(user.username);
       refreshPrompts();
+
+      // Refresh user data from API to ensure we have the latest fields (like id)
+      import('./services/apiService').then(({ getUserApi }) => {
+        getUserApi(user.username).then((remoteUser: User | null) => {
+          if (remoteUser) {
+            setCurrentUser(remoteUser);
+            // Update local storage invisibly
+            try {
+              localStorage.setItem('promptnexus_session_v2', JSON.stringify(remoteUser));
+            } catch (e) {
+              // ignore
+            }
+          }
+        });
+      });
     }
-  }, []);
+  }, []); // Run ONCE on mount
 
   // On initial load, check for shared links in URL params (profile/post)
   useEffect(() => {
@@ -119,11 +134,17 @@ function App() {
       // We need to import updatePromptApi
       const { updatePromptApi } = await import('./services/apiService');
       // Pass authorId for ownership verification in backend
-      await updatePromptApi(id, { ...input, authorId: currentUser?.id });
-      setEditingPrompt(null);
-      refreshPrompts();
+      const res = await updatePromptApi(id, { ...input, authorId: currentUser?.id });
+
+      if (res && res.success) {
+        setEditingPrompt(null);
+        refreshPrompts();
+      } else {
+        alert('Failed to update: ' + (res?.message || 'Unknown error'));
+      }
     } catch (e) {
       console.error('Failed to update prompt', e);
+      alert('Failed to update prompt. Please try again.');
     }
   };
 

@@ -266,7 +266,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ username, prompts, currentUse
                 )}
                 {user.linkdealUrl && (
                   <a href={user.linkdealUrl} target="_blank" rel="noreferrer" className="px-3 py-1 bg-slate-800 text-white rounded-lg text-sm font-semibold border border-slate-700">
-                    Linkdeal
+                    LinkedIn
                   </a>
                 )}
               </div>
@@ -476,10 +476,10 @@ const UserProfile: React.FC<UserProfileProps> = ({ username, prompts, currentUse
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-400 uppercase mb-2">Linkdeal URL</label>
+                <label className="block text-xs font-semibold text-slate-400 uppercase mb-2">LinkedIn URL</label>
                 <input
                   type="url"
-                  placeholder="https://linkdeal.example/your"
+                  placeholder="https://linkedin.com/in/yourprofile"
                   value={editLinkdeal}
                   onChange={(e) => setEditLinkdeal(e.target.value)}
                   className="w-full bg-black/50 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-primary-500"
@@ -496,8 +496,9 @@ const UserProfile: React.FC<UserProfileProps> = ({ username, prompts, currentUse
             </div>
           </div>
         </div>
-      )}
-    </div>
+      )
+      }
+    </div >
   );
 };
 
