@@ -33,8 +33,8 @@ const MoreMenu: React.FC<MoreMenuProps> = ({ isOpen, onClose, onLogout, currentU
     if (activeModal === 'settings') {
         return (
             <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-                <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden">
-                    <div className="flex justify-between items-center p-4 border-b border-slate-800">
+                <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto">
+                    <div className="flex justify-between items-center p-4 border-b border-slate-800 sticky top-0 bg-slate-900 z-10">
                         <h2 className="text-lg font-bold text-white flex items-center gap-2">
                             <Settings size={20} /> Settings
                         </h2>
@@ -74,8 +74,8 @@ const MoreMenu: React.FC<MoreMenuProps> = ({ isOpen, onClose, onLogout, currentU
     if (activeModal === 'about') {
         return (
             <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-                <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-sm shadow-2xl p-6 text-center">
-                    <div className="w-16 h-16 bg-gradient-to-tr from-teal-400 to-blue-600 rounded-xl mx-auto mb-4 flex items-center justify-center shadow-lg shadow-teal-500/20">
+                <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-sm shadow-2xl p-6 text-center max-h-[90vh] overflow-y-auto">
+                    <div className="w-16 h-16 bg-gradient-to-tr from-teal-400 to-blue-600 rounded-xl mx-auto mb-4 flex items-center justify-center shadow-lg shadow-teal-500/20 shrink-0">
                         <span className="text-2xl font-bold text-white">SP</span>
                     </div>
                     <h2 className="text-xl font-bold text-white mb-2">Hey, I am Shyam Patel</h2>
