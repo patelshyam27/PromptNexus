@@ -234,16 +234,7 @@ const PromptDetailModal: React.FC<PromptDetailModalProps> = ({ prompt, user, cur
               </code>
             </div>
 
-            {/* Comments Mock */}
-            <div className="space-y-4">
-              <div className="flex gap-3">
-                <div className="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center text-xs text-purple-400 font-bold border border-purple-500/30">S</div>
-                <div className="text-sm">
-                  <span className="font-bold text-white mr-2">system</span>
-                  <span className="text-slate-300">Great structure. I used this with Veo and got amazing results.</span>
-                </div>
-              </div>
-            </div>
+
           </div>
 
           {/* Action Footer */}

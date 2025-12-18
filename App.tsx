@@ -118,7 +118,8 @@ function App() {
       // reusing logic from UserProfile if needed or just updating list
       // We need to import updatePromptApi
       const { updatePromptApi } = await import('./services/apiService');
-      await updatePromptApi(id, input);
+      // Pass authorId for ownership verification in backend
+      await updatePromptApi(id, { ...input, authorId: currentUser?.id });
       setEditingPrompt(null);
       refreshPrompts();
     } catch (e) {
