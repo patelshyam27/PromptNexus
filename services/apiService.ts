@@ -9,12 +9,21 @@ async function apiPost(path: string, body: any) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body)
     });
-    const data = await res.json();
-    if (!res.ok) {
-      console.error('API Error:', path, res.status, data);
-      return { success: false, message: data.error || data.message || `Error ${res.status}` };
+
+    // Handle non-JSON response (e.g. 500/502 from Vercel)
+    const contentType = res.headers.get("content-type");
+    if (contentType && contentType.indexOf("application/json") !== -1) {
+      const data = await res.json();
+      if (!res.ok) {
+        console.error('API Error:', path, res.status, data);
+        return { success: false, message: data.error || data.message || `Error ${res.status}` };
+      }
+      return data;
+    } else {
+      const text = await res.text();
+      console.error('API Non-JSON Error:', path, res.status, text);
+      return { success: false, message: `Server Error (${res.status}): ${text.substring(0, 50)}...` };
     }
-    return data;
   } catch (err) {
     console.error('Network/Server Error:', err);
     return { success: false, message: "Network or Server Error" };

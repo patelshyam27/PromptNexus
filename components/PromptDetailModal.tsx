@@ -109,12 +109,7 @@ const PromptDetailModal: React.FC<PromptDetailModalProps> = ({ prompt, user, cur
           <div className="relative z-10 w-full">
 
             {/* Image Preview Card (if image exists) */}
-            {prompt.imageUrl && (
-              <div className="mb-8 rounded-xl overflow-hidden shadow-2xl border border-slate-700/50 max-h-[45vh] relative group mx-auto w-fit max-w-full bg-black/40 backdrop-blur-sm">
-                <img src={contentToProxiedImageUrl(prompt.imageUrl)} alt="Result" className="max-h-[45vh] object-contain" />
 
-              </div>
-            )}
 
             <div className="mb-6 flex justify-center">
               {prompt.modelUrl ? (
