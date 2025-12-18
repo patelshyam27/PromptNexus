@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Copy, Eye, Tag, Check, Heart, Star, ExternalLink, MessageCircle, Trash2, Share2 } from 'lucide-react';
 import { Prompt, AIModel, User } from '../types';
-import { copyPromptApi, deletePromptApi } from '../services/apiService';
+import { copyPromptApi, deletePromptApi, toggleFavoriteApi } from '../services/apiService';
 
 interface PromptCardProps {
   prompt: Prompt;
@@ -17,8 +17,8 @@ const PromptCard: React.FC<PromptCardProps> = ({ prompt, currentUser, onRefresh,
   const isAuthor = currentUser.username === prompt.authorId || currentUser.username === prompt.author?.username; // Handle relation
 
   useEffect(() => {
-    // Favorites not strictly implemented in backend MVP yet
-    setIsFavorite(false);
+    // Favorites initialized from prop
+    setIsFavorite(!!prompt.isFavorited);
   }, [prompt.id, currentUser.username]);
 
   const handleCopy = async (e: React.MouseEvent) => {
@@ -34,10 +34,17 @@ const PromptCard: React.FC<PromptCardProps> = ({ prompt, currentUser, onRefresh,
     }
   };
 
-  const handleFavorite = (e: React.MouseEvent) => {
+  const handleFavorite = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    // TODO: Implement backend favorites
-    alert("Favorites coming soon!");
+    try {
+      const res = await toggleFavoriteApi(prompt.id, currentUser.username);
+      if (res.success) {
+        setIsFavorite(res.favorited);
+        // Optional: onRefresh() if we want to update global counts, but might be too noisy for local toggle
+      }
+    } catch (e) {
+      console.error('Toggle favorite error', e);
+    }
   };
 
   const handleDelete = async (e: React.MouseEvent) => {
