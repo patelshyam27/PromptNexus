@@ -100,7 +100,12 @@ function App() {
   const refreshPrompts = async () => {
     try {
       const data = await getPromptsApi();
-      setPrompts(data || []);
+      if (Array.isArray(data)) {
+        setPrompts(data);
+      } else {
+        console.error("Invalid prompts data received:", data);
+        setPrompts([]);
+      }
     } catch (e) {
       console.error("Failed to load prompts", e);
     }

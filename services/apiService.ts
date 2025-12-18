@@ -50,8 +50,26 @@ async function apiPut(path: string, body: any) {
 }
 
 async function apiGet(path: string) {
-  const res = await fetch(`${API_BASE}${path}`);
-  return res.json();
+  try {
+    const res = await fetch(`${API_BASE}${path}`);
+    const contentType = res.headers.get("content-type");
+    if (contentType && contentType.indexOf("application/json") !== -1) {
+      if (!res.ok) {
+        // If 404/500 but JSON, could be error message
+        const data = await res.json();
+        console.error('API Get Error:', path, res.status, data);
+        return []; // Return empty array for safety on lists
+      }
+      return res.json();
+    } else {
+      const text = await res.text();
+      console.error('API Get Non-JSON Error:', path, res.status, text);
+      return []; // Return empty array to prevent map() crash
+    }
+  } catch (e) {
+    console.error("API Get Network Error", e);
+    return [];
+  }
 }
 
 export const registerUserApi = (payload: any) => apiPost('/register', payload);
