@@ -147,28 +147,20 @@ function App() {
 
   const handleUpdatePrompt = async (id: string, input: NewPromptInput) => {
     try {
-      // Import updatePromptApi needed? check imports
-      // reusing logic from UserProfile if needed or just updating list
-      // We need to import updatePromptApi
       const { updatePromptApi } = await import('./services/apiService');
-      // Pass authorId for ownership verification in backend
+
+      // Ensure we pass authorId for verification
       const res = await updatePromptApi(id, { ...input, authorId: currentUser?.id });
 
       if (res && res.success) {
         setEditingPrompt(null);
-        refreshPrompts();
-        // Update active prompt if it's the one being edited, to reflect changes in detail modal immediately
-        if (activePrompt && activePrompt.id === id) {
-          // We need to construct the new prompt object or fetch it. 
-          // refreshPrompts fetches all, but we need to update local state immediately or wait for refresh?
-          // refreshPrompts is async but we don't await it here properly (it's void returns).
-          // Better to update local activePrompt with input data optimistically or from response if available?
-          // The API returns { success: true, prompt: formattedP } (checked api/index.ts)
-          // But updatePromptApi returns `res` which is `data`.
-          // Let's use res.prompt if available, otherwise mix existing activePrompt.
-          if (res.prompt) {
-            setActivePrompt(res.prompt);
-          }
+
+        // 1. Force a global refresh to get latest data
+        await refreshPrompts();
+
+        // 2. Optimistically update the active view if it's open, using the server response
+        if (activePrompt && activePrompt.id === id && res.prompt) {
+          setActivePrompt(res.prompt);
         }
       } else {
         alert('Failed to update: ' + (res?.message || 'Unknown error'));

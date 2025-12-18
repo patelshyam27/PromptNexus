@@ -225,9 +225,11 @@ app.post('/api/prompts', async (req: Request, res: Response) => {
 });
 
 // Update prompt
+// Update prompt
 app.put('/api/prompts/:id', async (req: Request, res: Response) => {
   const { id } = req.params;
-  const { title, content, model, tags, authorId } = req.body;
+  const { title, content, description, model, modelUrl, category, tags, authorId, imageUrl } = req.body;
+
   // Note: authorId here is used to verify ownership
   try {
     const existing = await prisma.prompt.findUnique({ where: { id } });
@@ -235,16 +237,18 @@ app.put('/api/prompts/:id', async (req: Request, res: Response) => {
     if (existing.authorId !== authorId) return res.status(403).json({ success: false, message: 'Unauthorized' });
 
     const tagsString = Array.isArray(tags) ? tags.join(',') : (tags || null);
-    const { imageUrl } = req.body;
 
     const updated = await prisma.prompt.update({
       where: { id },
       data: {
         title,
         content,
+        description: description || undefined, // Update description if provided
         model: model || null,
+        modelUrl: modelUrl || null,
+        category: category || 'Other',
         tags: tagsString,
-        imageUrl: imageUrl !== undefined ? imageUrl : existing.imageUrl
+        imageUrl: imageUrl // Explicitly allow null to clear, or string to update. Undefined keeps existing? No, frontend sends current state.
       }
     });
 
@@ -259,6 +263,9 @@ app.put('/api/prompts/:id', async (req: Request, res: Response) => {
   } catch (e) {
     console.error('Update prompt error', e);
     res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+res.status(500).json({ success: false, message: 'Server error' });
   }
 });
 

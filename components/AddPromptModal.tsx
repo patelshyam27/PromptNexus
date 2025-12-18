@@ -48,7 +48,7 @@ const AddPromptModal: React.FC<AddPromptModalProps> = ({ isOpen, onClose, onAdd,
     const inputForValidation: NewPromptInput = {
       title,
       content,
-      description: '', // generated later
+      description: initialData?.description || '', // Ensure existing description is passed or it will be lost/regenerated
       model,
       modelUrl: modelUrl.trim() || undefined,
       category,
@@ -64,28 +64,28 @@ const AddPromptModal: React.FC<AddPromptModalProps> = ({ isOpen, onClose, onAdd,
       return;
     }
 
-    // 3. Auto-generate description if valid
-    // 3. Auto-generate description if valid
-    // Only generate if creating new or content changed significantly? for now regenerate.
-    let description = '';
-    // If updating, maybe keep old description if not regenerating? But usually content change means desc change.
-    // For MVP regenerate description on edit too.
+    // 3. Logic: If editing, keep description or regenerate?
+    // User requested "save edit changes" so we must prioritize existing description unless user asks to regen?
+    // For now, if we have initialData, we assume description is part of the edit (though not visible in form, it's preserved).
+    // Or we should allow regenerating if content changed drastically?
+    // Simple logic: If initialData exists, use passed description (preserved) unless empty.
 
-    // However, if initialData exists, we call onUpdate
     if (initialData && onUpdate) {
-      // Optimistic update often passes without description to backend if backend doesn't require it? 
-      // But our backend DB update doesn't touch description field in my PUT implementation!
-      // Wait, my PUT implementation in api/index.ts DOES NOT update description!
-      // I should stick to that or update the API. 
-      // Let's assume description remains or is handled by backend.
-      // Actually, schema probably has description. 
-      // Backend `data: { title, content, ... }` does NOT include description.
-      // So description fails to update. I should fix API later if needed.
-      onUpdate(initialData.id, { ...inputForValidation, description: initialData.description }); // Keep old desc for now as API doesn't update it
+      // If content changed significantly, maybe regenerate? But that's complex.
+      // Let's just pass the payload. The API handles description update now.
+      // However, we need to ensure description is set.
+      let finalDesc = inputForValidation.description;
+
+      // Fallback: if description is missing (e.g. legacy data), generate new one
+      if (!finalDesc || finalDesc.length < 5) {
+        finalDesc = await generateDescriptionWithGemini(content);
+      }
+
+      onUpdate(initialData.id, { ...inputForValidation, description: finalDesc });
     } else {
-      description = await generateDescriptionWithGemini(content);
-      const finalNewPrompt = { ...inputForValidation, description };
-      onAdd(finalNewPrompt);
+      // New Post
+      const desc = await generateDescriptionWithGemini(content);
+      onAdd({ ...inputForValidation, description: desc });
     }
 
     resetForm();
