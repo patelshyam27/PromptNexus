@@ -10,10 +10,9 @@ interface PromptCardProps {
   onRefresh: () => void;
   onAuthorClick?: (author: string) => void;
   onClick?: () => void;
-  onEdit?: (prompt: Prompt) => void;
 }
 
-const PromptCard: React.FC<PromptCardProps> = ({ prompt, currentUser, onRefresh, onAuthorClick, onClick, onEdit }) => {
+const PromptCard: React.FC<PromptCardProps> = ({ prompt, currentUser, onRefresh, onAuthorClick, onClick }) => {
   const [copied, setCopied] = useState(false);
   const isAuthor = currentUser.username === prompt.authorId || currentUser.username === prompt.author?.username; // Handle relation
 
@@ -87,20 +86,7 @@ const PromptCard: React.FC<PromptCardProps> = ({ prompt, currentUser, onRefresh,
                     (e.target as HTMLImageElement).style.display = 'none';
                   }}
                 />
-                <div className="absolute top-2 right-2 flex gap-2">
-                  <span className="bg-black/60 backdrop-blur px-2 py-0.5 rounded text-[10px] text-white font-medium flex items-center gap-1">
-                    <ImageIcon size={10} /> Image
-                  </span>
-                  <a
-                    href={prompt.imageUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    onClick={(e) => e.stopPropagation()}
-                    className="bg-primary-600/90 hover:bg-primary-500 backdrop-blur px-2 py-0.5 rounded text-[10px] text-white font-medium flex items-center gap-1 transition-colors"
-                  >
-                    <ExternalLink size={10} /> Open
-                  </a>
-                </div>
+
               </div>
             )}
           </div>
@@ -108,13 +94,7 @@ const PromptCard: React.FC<PromptCardProps> = ({ prompt, currentUser, onRefresh,
 
         {isAuthor && (
           <div className="flex ml-2 gap-1">
-            <button
-              onClick={(e) => { e.stopPropagation(); onEdit?.(prompt); }}
-              className="p-1.5 text-slate-500 hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors"
-              title="Edit Prompt"
-            >
-              <Edit size={16} />
-            </button>
+
             <button
               onClick={handleDelete}
               className="p-1.5 text-slate-500 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
@@ -207,20 +187,7 @@ const PromptCard: React.FC<PromptCardProps> = ({ prompt, currentUser, onRefresh,
             <span className="text-xs font-medium">{prompt.viewCount}</span>
           </div>
 
-          {/* View Result Button */}
-          {prompt.imageUrl && (
-            <a
-              href={prompt.imageUrl}
-              target="_blank"
-              rel="noreferrer"
-              onClick={(e) => e.stopPropagation()}
-              className="ml-auto flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-bold bg-slate-800 text-white hover:bg-slate-700 shadow-sm transition-all border border-slate-700"
-              title="View Result Image"
-            >
-              <ExternalLink size={14} />
-              <span>Result</span>
-            </a>
-          )}
+
 
           {/* Copy Button (Primary Action) */}
           <button

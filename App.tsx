@@ -145,31 +145,7 @@ function App() {
     }
   };
 
-  const handleUpdatePrompt = async (id: string, input: NewPromptInput) => {
-    try {
-      const { updatePromptApi } = await import('./services/apiService');
 
-      // Ensure we pass authorId for verification
-      const res = await updatePromptApi(id, { ...input, authorId: currentUser?.id });
-
-      if (res && res.success) {
-        setEditingPrompt(null);
-
-        // 1. Force a global refresh to get latest data
-        await refreshPrompts();
-
-        // 2. Optimistically update the active view if it's open, using the server response
-        if (activePrompt && activePrompt.id === id && res.prompt) {
-          setActivePrompt(res.prompt);
-        }
-      } else {
-        alert('Failed to update: ' + (res?.message || 'Unknown error'));
-      }
-    } catch (e) {
-      console.error('Failed to update prompt', e);
-      alert('Failed to update prompt. Please try again.');
-    }
-  };
 
   const navigateToProfile = (username: string) => {
     setSelectedProfileUser(username);
@@ -352,7 +328,6 @@ function App() {
                             onRefresh={refreshPrompts}
                             onAuthorClick={navigateToProfile}
                             onClick={() => setActivePrompt(prompt)}
-                            onEdit={(p) => setEditingPrompt(p)}
                           />
                           {/* Insert Ad after every 5th post */}
                           {(index + 1) % 5 === 0 && (
@@ -412,11 +387,9 @@ function App() {
           </nav>
 
           <AddPromptModal
-            isOpen={isModalOpen || !!editingPrompt}
-            onClose={() => { setIsModalOpen(false); setEditingPrompt(null); }}
+            isOpen={isModalOpen}
+            onClose={() => { setIsModalOpen(false); }}
             onAdd={handleAddPrompt}
-            onUpdate={handleUpdatePrompt}
-            initialData={editingPrompt}
             currentUser={currentUser}
           />
 

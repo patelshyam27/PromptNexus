@@ -10,10 +10,9 @@ interface PromptDetailModalProps {
   currentUser: User; // The logged in user
   onClose: () => void;
   onRefresh: () => void;
-  onEdit?: (prompt: Prompt) => void;
 }
 
-const PromptDetailModal: React.FC<PromptDetailModalProps> = ({ prompt, user, currentUser, onClose, onRefresh, onEdit }) => {
+const PromptDetailModal: React.FC<PromptDetailModalProps> = ({ prompt, user, currentUser, onClose, onRefresh }) => {
   const [copied, setCopied] = useState(false);
 
   const [userRating, setUserRating] = useState(0);
@@ -113,9 +112,7 @@ const PromptDetailModal: React.FC<PromptDetailModalProps> = ({ prompt, user, cur
             {prompt.imageUrl && (
               <div className="mb-8 rounded-xl overflow-hidden shadow-2xl border border-slate-700/50 max-h-[45vh] relative group mx-auto w-fit max-w-full bg-black/40 backdrop-blur-sm">
                 <img src={contentToProxiedImageUrl(prompt.imageUrl)} alt="Result" className="max-h-[45vh] object-contain" />
-                <a href={prompt.imageUrl} target="_blank" rel="noreferrer" className="absolute top-2 right-2 bg-primary-600 hover:bg-primary-500 text-white px-3 py-1.5 rounded-lg font-medium text-xs flex items-center gap-1 shadow-lg transition-all transform hover:scale-105">
-                  <ExternalLink size={14} /> Open Image
-                </a>
+
               </div>
             )}
 
@@ -172,12 +169,7 @@ const PromptDetailModal: React.FC<PromptDetailModalProps> = ({ prompt, user, cur
                 <div className="absolute right-0 top-full mt-2 w-32 bg-slate-900 border border-slate-700 rounded-lg shadow-xl z-50 overflow-hidden">
                   {currentUser.username === prompt.author && (
                     <>
-                      <button
-                        onClick={() => { setShowMenu(false); onEdit?.(prompt); }}
-                        className="w-full text-left px-4 py-3 text-sm text-white hover:bg-slate-800 flex items-center gap-2"
-                      >
-                        <Edit size={14} /> Edit
-                      </button>
+
                       <button
                         onClick={() => { setShowMenu(false); handleDelete(); }}
                         className="w-full text-left px-4 py-3 text-sm text-red-400 hover:bg-slate-800 flex items-center gap-2 md:hidden"
@@ -299,17 +291,7 @@ const PromptDetailModal: React.FC<PromptDetailModalProps> = ({ prompt, user, cur
           </div>
 
           <div className="flex gap-3">
-            {prompt.imageUrl && (
-              <a
-                href={prompt.imageUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="px-4 py-3 rounded-lg font-semibold text-sm transition-all flex items-center justify-center gap-2 bg-slate-800 text-white hover:bg-slate-700 border border-slate-700 hover:border-slate-600"
-              >
-                <ExternalLink size={18} />
-                <span>Result</span>
-              </a>
-            )}
+
 
             <button
               onClick={handleCopy}

@@ -70,23 +70,10 @@ const AddPromptModal: React.FC<AddPromptModalProps> = ({ isOpen, onClose, onAdd,
     // Or we should allow regenerating if content changed drastically?
     // Simple logic: If initialData exists, use passed description (preserved) unless empty.
 
-    if (initialData && onUpdate) {
-      // If content changed significantly, maybe regenerate? But that's complex.
-      // Let's just pass the payload. The API handles description update now.
-      // However, we need to ensure description is set.
-      let finalDesc = inputForValidation.description;
-
-      // Fallback: if description is missing (e.g. legacy data), generate new one
-      if (!finalDesc || finalDesc.length < 5) {
-        finalDesc = await generateDescriptionWithGemini(content);
-      }
-
-      onUpdate(initialData.id, { ...inputForValidation, description: finalDesc });
-    } else {
-      // New Post
-      const desc = await generateDescriptionWithGemini(content);
-      onAdd({ ...inputForValidation, description: desc });
-    }
+    // 3. Auto-generate description
+    const description = await generateDescriptionWithGemini(content);
+    const finalNewPrompt = { ...inputForValidation, description };
+    onAdd(finalNewPrompt);
 
     resetForm();
     onClose();
