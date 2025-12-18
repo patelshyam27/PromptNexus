@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Copy, Eye, Tag, Check, Star, ExternalLink, MessageCircle, Trash2, Share2 } from 'lucide-react';
+import { Copy, Eye, Tag, Check, Star, ExternalLink, MessageCircle, Trash2, Share2, Edit } from 'lucide-react';
 import { Prompt, AIModel, User } from '../types';
 import { copyPromptApi, deletePromptApi } from '../services/apiService';
 
@@ -9,9 +9,10 @@ interface PromptCardProps {
   onRefresh: () => void;
   onAuthorClick?: (author: string) => void;
   onClick?: () => void;
+  onEdit?: (prompt: Prompt) => void;
 }
 
-const PromptCard: React.FC<PromptCardProps> = ({ prompt, currentUser, onRefresh, onAuthorClick, onClick }) => {
+const PromptCard: React.FC<PromptCardProps> = ({ prompt, currentUser, onRefresh, onAuthorClick, onClick, onEdit }) => {
   const [copied, setCopied] = useState(false);
   const isAuthor = currentUser.username === prompt.authorId || currentUser.username === prompt.author?.username; // Handle relation
 
@@ -77,13 +78,22 @@ const PromptCard: React.FC<PromptCardProps> = ({ prompt, currentUser, onRefresh,
         )}
 
         {isAuthor && (
-          <button
-            onClick={handleDelete}
-            className="ml-2 p-1.5 text-slate-500 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
-            title="Delete Prompt"
-          >
-            <Trash2 size={16} />
-          </button>
+          <div className="flex ml-2 gap-1">
+            <button
+              onClick={(e) => { e.stopPropagation(); onEdit?.(prompt); }}
+              className="p-1.5 text-slate-500 hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors"
+              title="Edit Prompt"
+            >
+              <Edit size={16} />
+            </button>
+            <button
+              onClick={handleDelete}
+              className="p-1.5 text-slate-500 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
+              title="Delete Prompt"
+            >
+              <Trash2 size={16} />
+            </button>
+          </div>
         )}
       </div>
 

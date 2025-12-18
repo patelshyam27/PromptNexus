@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Grid, Users, Verified, Bookmark, Copy, Eye, TrendingUp, Award, BarChart3, Edit3, X, Save, User as UserIcon, Share2 } from 'lucide-react';
+import { Grid, Users, Verified, Bookmark, Copy, Eye, TrendingUp, Award, Edit3, X, Save, User as UserIcon, Share2 } from 'lucide-react';
 import { Prompt, User, AIModel, NewPromptInput } from '../types';
 import { getUserApi, updateUserApi, updatePromptApi } from '../services/apiService';
 import PromptDetailModal from './PromptDetailModal';
@@ -15,7 +15,7 @@ interface UserProfileProps {
   onUserUpdate?: () => void;
 }
 
-type ProfileTab = 'posts' | 'insights' | 'tagged';
+type ProfileTab = 'posts' | 'tagged';
 
 const UserProfile: React.FC<UserProfileProps> = ({ username, prompts, currentUser, onRefresh, onUserUpdate }) => {
   const [activePrompt, setActivePrompt] = useState<Prompt | null>(null);
@@ -319,13 +319,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ username, prompts, currentUse
 
 
 
-          <button
-            onClick={() => setActiveTab('insights')}
-            className={`flex items-center gap-2 py-3 text-xs font-medium tracking-widest cursor-pointer -mt-[1px] border-t ${activeTab === 'insights' ? 'border-white text-white' : 'border-transparent text-slate-500 hover:text-slate-300'}`}
-          >
-            <BarChart3 size={12} />
-            INSIGHTS
-          </button>
+
         </div>
       </div>
 

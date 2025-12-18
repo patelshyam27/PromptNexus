@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, MoreHorizontal, Heart, MessageCircle, Send, Bookmark, Copy, Check, Star, ExternalLink, Trash2, Edit } from 'lucide-react';
 import { Prompt, User, AIModel } from '../types';
-import { viewPromptApi, copyPromptApi, ratePromptApi, deletePromptApi, toggleFavoriteApi } from '../services/apiService';
+import { viewPromptApi, copyPromptApi, ratePromptApi, deletePromptApi } from '../services/apiService';
 
 interface PromptDetailModalProps {
   prompt: Prompt | null;
@@ -14,20 +14,20 @@ interface PromptDetailModalProps {
 
 const PromptDetailModal: React.FC<PromptDetailModalProps> = ({ prompt, user, currentUser, onClose, onRefresh, onEdit }) => {
   const [copied, setCopied] = useState(false);
-  const [isFavorite, setIsFavorite] = useState(false);
+
   const [userRating, setUserRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [showMenu, setShowMenu] = useState(false);
 
   useEffect(() => {
     if (prompt) {
-      // isPromptFavorite initialized from prop
-      setIsFavorite(!!prompt.isFavorited);
+
       // getUserRating not implemented in backend yet, defaulting to 0
       setUserRating(0);
 
       // Track view
       viewPromptApi(prompt.id).catch(console.error);
+
     }
   }, [prompt, currentUser.username]);
 
@@ -45,18 +45,7 @@ const PromptDetailModal: React.FC<PromptDetailModalProps> = ({ prompt, user, cur
     }
   };
 
-  const handleFavorite = async () => {
-    if (!prompt) return;
-    try {
-      const res = await toggleFavoriteApi(prompt.id, currentUser.username);
-      if (res.success) {
-        setIsFavorite(res.favorited);
-        onRefresh(); // Refresh parent list to update favorite counts
-      }
-    } catch (e) {
-      console.error('Toggle favorite error', e);
-    }
-  };
+
 
   const handleRate = async (rating: number) => {
     setUserRating(rating);
@@ -261,13 +250,6 @@ const PromptDetailModal: React.FC<PromptDetailModalProps> = ({ prompt, user, cur
           <div className="p-4 border-t border-slate-800 bg-slate-950 shrink-0 z-10">
             <div className="flex justify-between items-center mb-3">
               <div className="flex gap-4 text-white">
-                <button
-                  onClick={handleFavorite}
-                  className={`transition-colors ${isFavorite ? 'text-red-500' : 'text-white hover:text-slate-400'}`}
-                  title={isFavorite ? 'Unsave' : 'Save'}
-                >
-                  <Heart size={24} fill={isFavorite ? "currentColor" : "none"} />
-                </button>
                 {/* Share button */}
                 <button
                   onClick={() => {
@@ -284,13 +266,7 @@ const PromptDetailModal: React.FC<PromptDetailModalProps> = ({ prompt, user, cur
                   <ExternalLink size={20} />
                 </button>
               </div>
-              <button
-                onClick={handleFavorite}
-                className={`text-white hover:text-slate-400 transition-colors ${isFavorite ? 'text-red-500' : ''}`}
-                title={isFavorite ? 'Unsave' : 'Save'}
-              >
-                <Bookmark size={24} fill={isFavorite ? 'currentColor' : 'none'} />
-              </button>
+
             </div>
 
             <div className="flex gap-4 text-sm font-bold text-white mb-3">

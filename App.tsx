@@ -22,6 +22,7 @@ function App() {
   const [prompts, setPrompts] = useState<Prompt[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activePrompt, setActivePrompt] = useState<Prompt | null>(null);
+  const [editingPrompt, setEditingPrompt] = useState<Prompt | null>(null);
   const [activeTab, setActiveTab] = useState<ViewState>('home');
   const [selectedProfileUser, setSelectedProfileUser] = useState<string>('');
 
@@ -111,10 +112,34 @@ function App() {
     }
   };
 
+  const handleUpdatePrompt = async (id: string, input: NewPromptInput) => {
+    try {
+      // Import updatePromptApi needed? check imports
+      // reusing logic from UserProfile if needed or just updating list
+      // We need to import updatePromptApi
+      const { updatePromptApi } = await import('./services/apiService');
+      await updatePromptApi(id, input);
+      setEditingPrompt(null);
+      refreshPrompts();
+    } catch (e) {
+      console.error('Failed to update prompt', e);
+    }
+  };
+
   const navigateToProfile = (username: string) => {
     setSelectedProfileUser(username);
     setActiveTab('profile');
     window.scrollTo(0, 0);
+  };
+
+  const handleEditPrompt = (prompt: Prompt) => {
+    setActivePrompt(null); // Close detailed view if open (though usually called from card)
+    // We need to set editing prompt state which will open AddPromptModal in edit mode
+    // But App.tsx uses isModalOpen boolean for CREATE.
+    // We need a separate state for EDIT or reuse isModalOpen with initialData
+    // Let's check AddPromptModal props usage in App.tsx
+    // It accepts initialData. 
+    // We need state: [editingPrompt, setEditingPrompt]
   };
 
   // Main filter logic for the "Home Feed"
@@ -256,6 +281,7 @@ function App() {
                           onRefresh={refreshPrompts}
                           onAuthorClick={navigateToProfile}
                           onClick={() => setActivePrompt(prompt)}
+                          onEdit={(p) => setEditingPrompt(p)}
                         />
                       ))
                     ) : (
@@ -311,9 +337,11 @@ function App() {
           </nav>
 
           <AddPromptModal
-            isOpen={isModalOpen}
-            onClose={() => setIsModalOpen(false)}
+            isOpen={isModalOpen || !!editingPrompt}
+            onClose={() => { setIsModalOpen(false); setEditingPrompt(null); }}
             onAdd={handleAddPrompt}
+            onUpdate={handleUpdatePrompt}
+            initialData={editingPrompt}
             currentUser={currentUser}
           />
 
