@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { X, Sparkles, Loader2, Link as LinkIcon, AlertCircle } from 'lucide-react';
 import { AIModel, PromptCategory, NewPromptInput, User } from '../types';
-import { optimizePromptWithGemini, generateDescriptionWithGemini } from '../services/geminiService';
+import { generateDescriptionWithGemini } from '../services/geminiService';
 import { validatePromptInput } from '../services/validation';
 
 interface AddPromptModalProps {
@@ -18,7 +18,6 @@ const AddPromptModal: React.FC<AddPromptModalProps> = ({ isOpen, onClose, onAdd,
   const [modelUrl, setModelUrl] = useState('');
   const [category, setCategory] = useState<PromptCategory>(PromptCategory.OTHER);
   const [tags, setTags] = useState('');
-  const [isOptimizing, setIsOptimizing] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   if (!isOpen) return null;
@@ -55,13 +54,7 @@ const AddPromptModal: React.FC<AddPromptModalProps> = ({ isOpen, onClose, onAdd,
     onClose();
   };
 
-  const handleOptimize = async () => {
-    if (!content) return;
-    setIsOptimizing(true);
-    const optimized = await optimizePromptWithGemini(content);
-    setContent(optimized);
-    setIsOptimizing(false);
-  };
+
 
   const resetForm = () => {
     setTitle('');
@@ -147,15 +140,6 @@ const AddPromptModal: React.FC<AddPromptModalProps> = ({ isOpen, onClose, onAdd,
                 <label className="block text-sm font-medium text-slate-400">
                   Prompt Content <span className="text-red-500">*</span>
                 </label>
-                <button
-                  type="button"
-                  onClick={handleOptimize}
-                  disabled={!content || isOptimizing}
-                  className="text-xs flex items-center text-primary-400 hover:text-primary-300 disabled:opacity-50 transition-colors"
-                >
-                  {isOptimizing ? <Loader2 className="animate-spin mr-1" size={12} /> : <Sparkles size={12} className="mr-1" />}
-                  Enhance with Gemini
-                </button>
               </div>
               <textarea
                 rows={6}

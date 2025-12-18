@@ -77,7 +77,13 @@ app.get('/api/users', async (_req: Request, res: Response) => {
     const safeUsers = users.map(u => {
       // @ts-ignore
       const { password, ...rest } = u;
-      return rest;
+      return {
+        ...rest,
+        prompts: u.prompts.map(p => ({
+          ...p,
+          tags: p.tags ? p.tags.split(',').filter(Boolean) : []
+        }))
+      };
     });
     res.json(safeUsers);
   } catch (e) {
@@ -117,7 +123,14 @@ app.get('/api/users/:username', async (req: Request, res: Response) => {
     if (!user) return res.status(404).json({ message: 'User not found' });
     // @ts-ignore
     const { password, ...rest } = user;
-    res.json(rest);
+    const formattedUser = {
+      ...rest,
+      prompts: user.prompts.map(p => ({
+        ...p,
+        tags: p.tags ? p.tags.split(',').filter(Boolean) : []
+      }))
+    };
+    res.json(formattedUser);
   } catch (e) {
     res.status(500).json({ message: 'Server error' });
   }
@@ -144,7 +157,13 @@ app.delete('/api/users/:username', async (req: Request, res: Response) => {
 app.get('/api/prompts', async (_req: Request, res: Response) => {
   try {
     const prompts = await prisma.prompt.findMany({ orderBy: { createdAt: 'desc' }, include: { author: true } });
-    res.json(prompts);
+    const formatted = prompts.map(p => ({
+      ...p,
+      author: p.author.username, // Flatten author to username
+      tags: p.tags ? p.tags.split(',').filter(Boolean) : [], // Split tags string to array
+      authorDetails: p.author // Optional: keep full details if needed later, but types say string
+    }));
+    res.json(formatted);
   } catch (e) {
     console.error('Get prompts error', e);
     res.status(500).json({ message: 'Server error' });
@@ -156,8 +175,14 @@ app.post('/api/prompts', async (req: Request, res: Response) => {
   const { title, content, model, tags, authorId } = req.body;
   if (!title || !content || !authorId) return res.status(400).json({ success: false, message: 'Missing fields' });
   try {
-    const p = await prisma.prompt.create({ data: { title, content, model: model || null, tags: tags || null, authorId } });
-    res.json({ success: true, prompt: p });
+    const tagsString = Array.isArray(tags) ? tags.join(',') : (tags || null);
+    const p = await prisma.prompt.create({ data: { title, content, model: model || null, tags: tagsString, authorId } });
+    const formattedP = {
+      ...p,
+      tags: p.tags ? p.tags.split(',').filter(Boolean) : [],
+      author: authorId // Return authorId as author string to match type
+    };
+    res.json({ success: true, prompt: formattedP });
   } catch (e) {
     console.error('Create prompt error', e);
     res.status(500).json({ success: false, message: 'Server error' });
