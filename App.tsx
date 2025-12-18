@@ -142,11 +142,15 @@ function App() {
   const handleAddPrompt = async (input: NewPromptInput) => {
     if (!currentUser) return;
     try {
-      await createPromptApi({ ...input, authorId: currentUser.id }); // API expects authorId (UUID)
-      refreshPrompts();
-      setActiveTab('home'); // Go home after post
+      const res = await createPromptApi({ ...input, authorId: currentUser.id }); // API expects authorId (UUID)
+      if (res && res.success) {
+        refreshPrompts();
+        setActiveTab('home'); // Go home after post
+      } else {
+        alert("Failed to create prompt: " + (res?.message || "Unknown server error"));
+      }
     } catch (e) {
-      alert("Failed to create prompt");
+      alert("Failed to create prompt: Network error");
     }
   };
 
