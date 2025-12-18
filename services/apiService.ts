@@ -49,6 +49,7 @@ export const registerUserApi = (payload: any) => apiPost('/register', payload);
 export const loginUserApi = (payload: any) => apiPost('/login', payload);
 export const getPromptsApi = () => apiGet('/prompts');
 export const createPromptApi = (payload: any) => apiPost('/prompts', payload);
+export const updatePromptApi = (id: string, payload: any) => apiPut(`/prompts/${id}`, payload);
 export const addFeedbackApi = (payload: any) => apiPost('/feedback', payload);
 export const viewPromptApi = (id: string) => apiPost(`/prompts/${id}/view`, {});
 export const copyPromptApi = (id: string) => apiPost(`/prompts/${id}/copy`, {});
@@ -65,4 +66,4 @@ export const markFeedbackReadApi = (id: string, read: boolean) => apiPut(`/feedb
 export const deleteFeedbackApi = (id: string) => fetch(`${API_BASE}/feedback/${id}`, { method: 'DELETE' }).then(r => r.json());
 export const toggleFavoriteApi = (id: string, userId: string) => apiPost(`/prompts/${id}/favorite`, { userId });
 
-export default { registerUserApi, loginUserApi, getPromptsApi, createPromptApi, addFeedbackApi, viewPromptApi, copyPromptApi, ratePromptApi, deletePromptApi, getUsersApi, getUserApi, updateUserApi, deleteUserApi, getFeedbackApi, markFeedbackReadApi, deleteFeedbackApi, toggleFavoriteApi };
+export default { registerUserApi, loginUserApi, getPromptsApi, createPromptApi, updatePromptApi, addFeedbackApi, viewPromptApi, copyPromptApi, ratePromptApi, deletePromptApi, getUsersApi, getUserApi, updateUserApi, deleteUserApi, getFeedbackApi, markFeedbackReadApi, deleteFeedbackApi, toggleFavoriteApi };

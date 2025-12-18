@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, MoreHorizontal, Heart, MessageCircle, Send, Bookmark, Copy, Check, Star, ExternalLink, Trash2 } from 'lucide-react';
+import { X, MoreHorizontal, Heart, MessageCircle, Send, Bookmark, Copy, Check, Star, ExternalLink, Trash2, Edit } from 'lucide-react';
 import { Prompt, User, AIModel } from '../types';
 import { viewPromptApi, copyPromptApi, ratePromptApi, deletePromptApi, toggleFavoriteApi } from '../services/apiService';
 
@@ -9,13 +9,15 @@ interface PromptDetailModalProps {
   currentUser: User; // The logged in user
   onClose: () => void;
   onRefresh: () => void;
+  onEdit?: (prompt: Prompt) => void;
 }
 
-const PromptDetailModal: React.FC<PromptDetailModalProps> = ({ prompt, user, currentUser, onClose, onRefresh }) => {
+const PromptDetailModal: React.FC<PromptDetailModalProps> = ({ prompt, user, currentUser, onClose, onRefresh, onEdit }) => {
   const [copied, setCopied] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
   const [userRating, setUserRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
+  const [showMenu, setShowMenu] = useState(false);
 
   useEffect(() => {
     if (prompt) {
@@ -141,19 +143,47 @@ const PromptDetailModal: React.FC<PromptDetailModalProps> = ({ prompt, user, cur
               </div>
               <span className="font-bold text-sm text-white hover:text-slate-300 cursor-pointer">{prompt.author}</span>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 relative">
               {currentUser.username === prompt.author && (
                 <button
                   onClick={handleDelete}
-                  className="text-slate-400 hover:text-red-500 transition-colors p-2"
+                  className="text-slate-400 hover:text-red-500 transition-colors p-2 hidden md:block"
                   title="Delete Prompt"
                 >
                   <Trash2 size={20} />
                 </button>
               )}
-              <button onClick={onClose} className="text-white hover:text-slate-300">
-                <MoreHorizontal size={20} />
-              </button>
+              <div className="relative">
+                <button onClick={() => setShowMenu(!showMenu)} className="text-white hover:text-slate-300 p-2">
+                  <MoreHorizontal size={20} />
+                </button>
+                {showMenu && (
+                  <div className="absolute right-0 top-full mt-2 w-32 bg-slate-900 border border-slate-700 rounded-lg shadow-xl z-50 overflow-hidden">
+                    {currentUser.username === prompt.author && (
+                      <>
+                        <button
+                          onClick={() => { setShowMenu(false); onEdit?.(prompt); }}
+                          className="w-full text-left px-4 py-3 text-sm text-white hover:bg-slate-800 flex items-center gap-2"
+                        >
+                          <Edit size={14} /> Edit
+                        </button>
+                        <button
+                          onClick={() => { setShowMenu(false); handleDelete(); }}
+                          className="w-full text-left px-4 py-3 text-sm text-red-400 hover:bg-slate-800 flex items-center gap-2 md:hidden"
+                        >
+                          <Trash2 size={14} /> Delete
+                        </button>
+                      </>
+                    )}
+                    <button
+                      onClick={() => { setShowMenu(false); onClose(); }}
+                      className="w-full text-left px-4 py-3 text-sm text-slate-400 hover:bg-slate-800 flex items-center gap-2"
+                    >
+                      <X size={14} /> Close
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 

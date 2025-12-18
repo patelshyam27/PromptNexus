@@ -1,8 +1,9 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Grid, Users, Verified, Bookmark, Copy, Eye, TrendingUp, Award, BarChart3, Heart, Edit3, X, Save, User as UserIcon, Share2 } from 'lucide-react';
-import { Prompt, User, AIModel } from '../types';
-import { getUserApi, updateUserApi } from '../services/apiService';
+import { Prompt, User, AIModel, NewPromptInput } from '../types';
+import { getUserApi, updateUserApi, updatePromptApi } from '../services/apiService';
 import PromptDetailModal from './PromptDetailModal';
+import AddPromptModal from './AddPromptModal';
 
 export const FALLBACK_AVATAR = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 128'><rect fill='%2320282d' width='128' height='128'/><circle cx='64' cy='44' r='26' fill='%234a5568'/><rect x='24' y='80' width='80' height='28' rx='12' fill='%234a5568'/></svg>";
 
@@ -21,6 +22,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ username, prompts, currentUse
   const [activeTab, setActiveTab] = useState<ProfileTab>('posts');
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [profileUser, setProfileUser] = useState<User | null>(null);
+  const [editingPrompt, setEditingPrompt] = useState<Prompt | null>(null);
 
   // Edit Form State
   const [editDisplayName, setEditDisplayName] = useState('');
@@ -43,10 +45,10 @@ const UserProfile: React.FC<UserProfileProps> = ({ username, prompts, currentUse
 
   const isOwnProfile = username === currentUser.username;
 
-  // Favorite logic currently disabled (requires API implementation)
+  // Favorite logic: Filter prompts that are favorited by the current user
   const favoritePrompts = useMemo(() => {
-    return [];
-  }, []);
+    return prompts.filter(p => p.isFavorited);
+  }, [prompts]);
 
   // Fetch user if not own profile
   useEffect(() => {
@@ -96,6 +98,16 @@ const UserProfile: React.FC<UserProfileProps> = ({ username, prompts, currentUse
 
     setIsEditModalOpen(false);
     if (onUserUpdate) onUserUpdate();
+  };
+
+  const handleUpdatePrompt = async (id: string, input: NewPromptInput) => {
+    try {
+      await updatePromptApi(id, input);
+      setEditingPrompt(null);
+      onRefresh();
+    } catch (e) {
+      console.error('Failed to update prompt', e);
+    }
   };
 
   // Filter prompts authored by this user (for stats and default view)
@@ -377,7 +389,22 @@ const UserProfile: React.FC<UserProfileProps> = ({ username, prompts, currentUse
         prompt={activePrompt}
         user={currentUser}
         onClose={() => setActivePrompt(null)}
+      <PromptDetailModal
+        prompt={activePrompt}
+        user={currentUser}
+        onClose={() => setActivePrompt(null)}
         onRefresh={onRefresh}
+        currentUser={currentUser}
+        onEdit={(p) => { setActivePrompt(null); setEditingPrompt(p); }}
+      />
+
+      {/* Edit Prompt Modal */}
+      <AddPromptModal
+        isOpen={!!editingPrompt}
+        onClose={() => setEditingPrompt(null)}
+        onAdd={() => { }} // Not used in edit mode
+        onUpdate={handleUpdatePrompt}
+        initialData={editingPrompt}
         currentUser={currentUser}
       />
 
