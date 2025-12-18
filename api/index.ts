@@ -215,13 +215,9 @@ app.get('/api/prompts', async (req: Request, res: Response) => {
       favoriteCount: 0
     }));
     res.json(formatted);
-  } catch (e: any) {
+  } catch (e) {
     console.error('Get prompts error', e);
-    res.status(500).json({
-      message: 'Server error',
-      error: e.message,
-      stack: e.stack
-    });
+    res.status(500).json({ message: 'Server error' });
   }
 });
 
