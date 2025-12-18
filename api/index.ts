@@ -206,7 +206,10 @@ app.post('/api/prompts', async (req: Request, res: Response) => {
       data: {
         title,
         content,
+        description: req.body.description || null,
         model: model || null,
+        modelUrl: req.body.modelUrl || null,
+        category: req.body.category || 'Other',
         tags: tagsString,
         authorId,
         imageUrl: imageUrl || null

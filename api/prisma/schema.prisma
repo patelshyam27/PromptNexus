@@ -31,7 +31,10 @@ model Prompt {
   id         String   @id @default(uuid())
   title      String
   content    String
+  description String?
   model      String?
+  modelUrl   String?
+  category   String?
   tags       String?
   imageUrl   String?
   viewCount  Int      @default(0)
