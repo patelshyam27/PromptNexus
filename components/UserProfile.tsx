@@ -385,10 +385,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ username, prompts, currentUse
         </div>
       )}
 
-      <PromptDetailModal
-        prompt={activePrompt}
-        user={currentUser}
-        onClose={() => setActivePrompt(null)}
+
       <PromptDetailModal
         prompt={activePrompt}
         user={currentUser}
