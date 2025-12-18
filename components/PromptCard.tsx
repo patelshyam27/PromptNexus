@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Copy, Eye, Tag, Check, Star, ExternalLink, MessageCircle, Trash2, Share2, Edit } from 'lucide-react';
+import { Copy, Eye, Tag, Check, Star, ExternalLink, Heart, MessageCircle, Share2, MoreHorizontal, Edit, Trash2, Zap, Bookmark, Image as ImageIcon } from 'lucide-react';
 import { Prompt, AIModel, User } from '../types';
 import { copyPromptApi, deletePromptApi } from '../services/apiService';
+import { contentToProxiedImageUrl } from '../utils/imageUtils';
 
 interface PromptCardProps {
   prompt: Prompt;
@@ -74,6 +75,34 @@ const PromptCard: React.FC<PromptCardProps> = ({ prompt, currentUser, onRefresh,
           <div className="flex items-center gap-1 text-amber-400 bg-amber-400/10 px-2 py-1 rounded-lg text-xs font-bold">
             <Star size={12} fill="currentColor" />
             <span>{prompt.rating.toFixed(1)}</span>
+            {/* Attached Image Preview */}
+            {prompt.imageUrl && (
+              <div className="mb-4 rounded-lg overflow-hidden border border-slate-800 max-h-48 relative group">
+                <img
+                  src={contentToProxiedImageUrl(prompt.imageUrl)}
+                  alt="Prompt Result"
+                  className="w-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
+                  onError={(e) => {
+                    // Hide if broken
+                    (e.target as HTMLImageElement).style.display = 'none';
+                  }}
+                />
+                <div className="absolute top-2 right-2 flex gap-2">
+                  <span className="bg-black/60 backdrop-blur px-2 py-0.5 rounded text-[10px] text-white font-medium flex items-center gap-1">
+                    <ImageIcon size={10} /> Image
+                  </span>
+                  <a
+                    href={prompt.imageUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                    className="bg-primary-600/90 hover:bg-primary-500 backdrop-blur px-2 py-0.5 rounded text-[10px] text-white font-medium flex items-center gap-1 transition-colors"
+                  >
+                    <ExternalLink size={10} /> Open
+                  </a>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -178,7 +207,20 @@ const PromptCard: React.FC<PromptCardProps> = ({ prompt, currentUser, onRefresh,
             <span className="text-xs font-medium">{prompt.viewCount}</span>
           </div>
 
-
+          {/* View Result Button */}
+          {prompt.imageUrl && (
+            <a
+              href={prompt.imageUrl}
+              target="_blank"
+              rel="noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="ml-auto flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-bold bg-slate-800 text-white hover:bg-slate-700 shadow-sm transition-all border border-slate-700"
+              title="View Result Image"
+            >
+              <ExternalLink size={14} />
+              <span>Result</span>
+            </a>
+          )}
 
           {/* Copy Button (Primary Action) */}
           <button

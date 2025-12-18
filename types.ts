@@ -44,18 +44,17 @@ export interface Prompt {
   id: string;
   title: string;
   content: string;
-  description: string;
+  model: AIModel | null;
   category: PromptCategory;
-  model: string;
-  modelUrl?: string;
-  author: string; // corresponds to User.username
-  authorId: string; // UUID
+  tags: string[];
+  imageUrl?: string;
+  author: string;
+  authorDetails?: User;
+  createdAt: string; // ISO String for frontend
   viewCount: number;
   copyCount: number;
   rating: number;      // Average rating (0-5)
   ratingCount: number; // Total number of ratings
-  createdAt: number;
-  tags: string[];
   isFavorited?: boolean;
   favoriteCount?: number;
 }
@@ -69,6 +68,7 @@ export interface NewPromptInput {
   modelUrl?: string;
   author: string;
   tags: string[];
+  imageUrl?: string | null;
 }
 
 export type FilterState = {

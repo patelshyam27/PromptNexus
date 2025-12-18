@@ -157,6 +157,19 @@ function App() {
       if (res && res.success) {
         setEditingPrompt(null);
         refreshPrompts();
+        // Update active prompt if it's the one being edited, to reflect changes in detail modal immediately
+        if (activePrompt && activePrompt.id === id) {
+          // We need to construct the new prompt object or fetch it. 
+          // refreshPrompts fetches all, but we need to update local state immediately or wait for refresh?
+          // refreshPrompts is async but we don't await it here properly (it's void returns).
+          // Better to update local activePrompt with input data optimistically or from response if available?
+          // The API returns { success: true, prompt: formattedP } (checked api/index.ts)
+          // But updatePromptApi returns `res` which is `data`.
+          // Let's use res.prompt if available, otherwise mix existing activePrompt.
+          if (res.prompt) {
+            setActivePrompt(res.prompt);
+          }
+        }
       } else {
         alert('Failed to update: ' + (res?.message || 'Unknown error'));
       }
@@ -294,13 +307,15 @@ function App() {
             </div>
 
             {/* Mobile More Menu Instance - Positioned for bottom right access */}
-            <MoreMenu
-              isOpen={isMoreMenuOpen}
-              onClose={() => setIsMoreMenuOpen(false)}
-              onLogout={handleLogout}
-              currentUser={currentUser}
-              className="fixed right-2 bottom-20 shadow-xl border border-slate-800/50 z-50"
-            />
+            <div className="md:hidden">
+              <MoreMenu
+                isOpen={isMoreMenuOpen}
+                onClose={() => setIsMoreMenuOpen(false)}
+                onLogout={handleLogout}
+                currentUser={currentUser}
+                className="fixed right-2 bottom-20 shadow-xl border border-slate-800/50 z-50"
+              />
+            </div>
 
             <div className="max-w-screen-lg mx-auto min-h-screen">
 

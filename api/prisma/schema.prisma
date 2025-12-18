@@ -33,6 +33,7 @@ model Prompt {
   content    String
   model      String?
   tags       String?
+  imageUrl   String?
   viewCount  Int      @default(0)
   copyCount  Int      @default(0)
   rating     Float    @default(0)

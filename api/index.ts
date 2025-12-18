@@ -198,11 +198,20 @@ app.get('/api/prompts', async (req: Request, res: Response) => {
 
 // Create prompt
 app.post('/api/prompts', async (req: Request, res: Response) => {
-  const { title, content, model, tags, authorId } = req.body;
+  const { title, content, model, tags, authorId, imageUrl } = req.body;
   if (!title || !content || !authorId) return res.status(400).json({ success: false, message: 'Missing fields' });
   try {
     const tagsString = Array.isArray(tags) ? tags.join(',') : (tags || null);
-    const p = await prisma.prompt.create({ data: { title, content, model: model || null, tags: tagsString, authorId } });
+    const p = await prisma.prompt.create({
+      data: {
+        title,
+        content,
+        model: model || null,
+        tags: tagsString,
+        authorId,
+        imageUrl: imageUrl || null
+      }
+    });
     const formattedP = {
       ...p,
       tags: p.tags ? p.tags.split(',').filter(Boolean) : [],
@@ -226,13 +235,16 @@ app.put('/api/prompts/:id', async (req: Request, res: Response) => {
     if (existing.authorId !== authorId) return res.status(403).json({ success: false, message: 'Unauthorized' });
 
     const tagsString = Array.isArray(tags) ? tags.join(',') : (tags || null);
+    const { imageUrl } = req.body;
+
     const updated = await prisma.prompt.update({
       where: { id },
       data: {
         title,
         content,
         model: model || null,
-        tags: tagsString
+        tags: tagsString,
+        imageUrl: imageUrl !== undefined ? imageUrl : existing.imageUrl
       }
     });
 
