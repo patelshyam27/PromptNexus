@@ -88,8 +88,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ username, prompts, currentUse
       displayName: editDisplayName,
       bio: editBio,
       gender: editGender,
-      instagramUrl: editInstagram || null,
-      linkdealUrl: editLinkdeal || null,
+      instagramUrl: editInstagram || undefined,
+      linkdealUrl: editLinkdeal || undefined,
       avatarUrl: newAvatarUrl
     });
 

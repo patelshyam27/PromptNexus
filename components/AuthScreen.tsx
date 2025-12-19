@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Zap, ArrowRight, UserPlus, LogIn, Loader2, User as UserIcon } from 'lucide-react';
+import { Zap, ArrowRight, UserPlus, LogIn, Loader2, User as UserIcon, Eye, EyeOff } from 'lucide-react';
 import { registerUserApi, loginUserApi, FALLBACK_AVATAR } from '../services/apiService';
 import { User } from '../types';
 
@@ -18,6 +18,7 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthSuccess }) => {
   const [displayName, setDisplayName] = useState('');
   const [bio, setBio] = useState('');
   const [gender, setGender] = useState<'male' | 'female'>('male');
+  const [showPassword, setShowPassword] = useState(false);
 
   // Helper to generate preview URL live
   const getAvatarUrl = (seed: string, genderType: 'male' | 'female') => {
@@ -216,13 +217,22 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthSuccess }) => {
 
           <div>
             <label className="block text-xs font-semibold text-slate-400 uppercase mb-2">Password</label>
-            <input
-              type="password"
-              className="w-full bg-black/50 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-all"
-              placeholder="••••••••"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                className="w-full bg-black/50 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-all pr-12"
+                placeholder="••••••••"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-white focus:outline-none"
+              >
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
+            </div>
           </div>
 
           {!isLogin && (

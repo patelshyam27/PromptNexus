@@ -20,7 +20,7 @@ const AddPromptModal: React.FC<AddPromptModalProps> = ({ isOpen, onClose, onAdd,
   const [modelUrl, setModelUrl] = useState(initialData?.modelUrl || '');
   const [category, setCategory] = useState<PromptCategory>(initialData?.category || PromptCategory.OTHER);
   const [tags, setTags] = useState(initialData?.tags ? initialData.tags.join(', ') : '');
-  const [imageUrl, setImageUrl] = useState(initialData?.imageUrl || '');
+
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isGeneratingDescription, setIsGeneratingDescription] = useState(false);
 
@@ -33,7 +33,6 @@ const AddPromptModal: React.FC<AddPromptModalProps> = ({ isOpen, onClose, onAdd,
       setModelUrl(initialData?.modelUrl || '');
       setCategory((initialData?.category as PromptCategory) || PromptCategory.OTHER);
       setTags(initialData?.tags ? initialData.tags.join(', ') : '');
-      setImageUrl(initialData?.imageUrl || '');
       setErrors({}); // Clear errors when modal opens or initialData changes
     }
   }, [initialData, isOpen]);
@@ -52,7 +51,8 @@ const AddPromptModal: React.FC<AddPromptModalProps> = ({ isOpen, onClose, onAdd,
       model,
       modelUrl: modelUrl.trim() || undefined,
       category,
-      imageUrl: imageUrl.trim() || null,
+
+      imageUrl: initialData?.imageUrl || null,
       author: currentUser.username,
       tags: tags.split(',').map(t => t.trim()).filter(t => t.length > 0)
     };
@@ -208,21 +208,6 @@ const AddPromptModal: React.FC<AddPromptModalProps> = ({ isOpen, onClose, onAdd,
                   onChange={(e) => setTags(e.target.value)}
                 />
               </div>
-            </div>
-
-            {/* Image URL Input */}
-            <div>
-              <label className="block text-sm font-medium text-slate-400 mb-2">Result Image URL (Optional)</label>
-              <input
-                type="text"
-                value={imageUrl}
-                onChange={(e) => setImageUrl(e.target.value)}
-                placeholder="Paste a Google Drive link or direct image URL to show results"
-                className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-all"
-              />
-              <p className="text-xs text-slate-500 mt-1">
-                For Google Drive links, make sure "Anyone with the link" can view.
-              </p>
             </div>
 
             <div className="pt-4 border-t border-slate-800 flex justify-end space-x-3">
