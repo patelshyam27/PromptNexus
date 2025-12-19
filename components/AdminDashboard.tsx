@@ -191,7 +191,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentUser, onLogout }
         refreshData();
     };
 
-    const handleExport = (data: any[], filename: string) => {
+    const handleExport = (data: any, filename: string) => {
         const jsonString = `data:text/json;chatset=utf-8,${encodeURIComponent(
             JSON.stringify(data, null, 2)
         )}`;
@@ -640,7 +640,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentUser, onLogout }
                                 </div>
                             </div>
                         </div>
-                    ) : (
+                    ) : activeTab === 'database' ? (
                         // Database Tab
                         <div className="p-6">
                             <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-3">
@@ -714,76 +714,76 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentUser, onLogout }
                             </div>
                         </div>
                     ) : (
-                    // Analytics Tab
-                    <div className="p-6">
-                        <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-3">
-                            <PieChartIcon className="text-pink-500" /> Site Analytics
-                        </h2>
+                        // Analytics Tab
+                        <div className="p-6">
+                            <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-3">
+                                <PieChartIcon className="text-pink-500" /> Site Analytics
+                            </h2>
 
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-                            {/* Model Distribution */}
-                            <div className="bg-slate-900/50 p-6 rounded-xl border border-slate-800">
-                                <h3 className="text-lg font-bold text-white mb-4">AI Model Usage</h3>
-                                <div className="h-[300px] w-full">
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <PieChart>
-                                            <Pie
-                                                data={modelData}
-                                                cx="50%"
-                                                cy="50%"
-                                                labelLine={false}
-                                                outerRadius={100}
-                                                fill="#8884d8"
-                                                dataKey="value"
-                                                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                                            >
-                                                {modelData.map((entry, index) => (
-                                                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                                ))}
-                                            </Pie>
-                                            <Tooltip contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', color: '#fff' }} />
-                                        </PieChart>
-                                    </ResponsiveContainer>
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                                {/* Model Distribution */}
+                                <div className="bg-slate-900/50 p-6 rounded-xl border border-slate-800">
+                                    <h3 className="text-lg font-bold text-white mb-4">AI Model Usage</h3>
+                                    <div className="h-[300px] w-full">
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <PieChart>
+                                                <Pie
+                                                    data={modelData}
+                                                    cx="50%"
+                                                    cy="50%"
+                                                    labelLine={false}
+                                                    outerRadius={100}
+                                                    fill="#8884d8"
+                                                    dataKey="value"
+                                                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                                                >
+                                                    {modelData.map((entry, index) => (
+                                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                                    ))}
+                                                </Pie>
+                                                <Tooltip contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', color: '#fff' }} />
+                                            </PieChart>
+                                        </ResponsiveContainer>
+                                    </div>
+                                </div>
+
+                                {/* Category Distribution */}
+                                <div className="bg-slate-900/50 p-6 rounded-xl border border-slate-800">
+                                    <h3 className="text-lg font-bold text-white mb-4">Prompt Categories</h3>
+                                    <div className="h-[300px] w-full">
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <BarChart data={categoryData}>
+                                                <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                                                <XAxis dataKey="name" stroke="#94a3b8" fontSize={10} interval={0} angle={-45} textAnchor="end" height={60} />
+                                                <YAxis stroke="#94a3b8" />
+                                                <Tooltip contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', color: '#fff' }} cursor={{ fill: '#334155', opacity: 0.2 }} />
+                                                <Bar dataKey="value" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
+                                            </BarChart>
+                                        </ResponsiveContainer>
+                                    </div>
                                 </div>
                             </div>
 
-                            {/* Category Distribution */}
+                            {/* Quick Stats */}
                             <div className="bg-slate-900/50 p-6 rounded-xl border border-slate-800">
-                                <h3 className="text-lg font-bold text-white mb-4">Prompt Categories</h3>
-                                <div className="h-[300px] w-full">
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <BarChart data={categoryData}>
-                                            <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                                            <XAxis dataKey="name" stroke="#94a3b8" fontSize={10} interval={0} angle={-45} textAnchor="end" height={60} />
-                                            <YAxis stroke="#94a3b8" />
-                                            <Tooltip contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', color: '#fff' }} cursor={{ fill: '#334155', opacity: 0.2 }} />
-                                            <Bar dataKey="value" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
-                                        </BarChart>
-                                    </ResponsiveContainer>
+                                <h3 className="text-lg font-bold text-white mb-4">User Activity Audit</h3>
+                                <p className="text-sm text-slate-400 mb-4">Users who have not posted in the last 30 days are marked Inactive.</p>
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                    <div className="bg-slate-800 p-4 rounded-lg">
+                                        <div className="text-slate-400 text-xs uppercase">Active Users</div>
+                                        <div className="text-2xl font-bold text-green-400">{users.filter(u => getUserStatus(u.username) === 'Active').length}</div>
+                                    </div>
+                                    <div className="bg-slate-800 p-4 rounded-lg">
+                                        <div className="text-slate-400 text-xs uppercase">Inactive Users</div>
+                                        <div className="text-2xl font-bold text-slate-400">{users.filter(u => getUserStatus(u.username) === 'Inactive').length}</div>
+                                    </div>
+                                    <div className="bg-slate-800 p-4 rounded-lg">
+                                        <div className="text-slate-400 text-xs uppercase">Avg Prompts/User</div>
+                                        <div className="text-2xl font-bold text-blue-400">{(prompts.length / (users.length || 1)).toFixed(1)}</div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-
-                        {/* Quick Stats */}
-                        <div className="bg-slate-900/50 p-6 rounded-xl border border-slate-800">
-                            <h3 className="text-lg font-bold text-white mb-4">User Activity Audit</h3>
-                            <p className="text-sm text-slate-400 mb-4">Users who have not posted in the last 30 days are marked Inactive.</p>
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                <div className="bg-slate-800 p-4 rounded-lg">
-                                    <div className="text-slate-400 text-xs uppercase">Active Users</div>
-                                    <div className="text-2xl font-bold text-green-400">{users.filter(u => getUserStatus(u.username) === 'Active').length}</div>
-                                </div>
-                                <div className="bg-slate-800 p-4 rounded-lg">
-                                    <div className="text-slate-400 text-xs uppercase">Inactive Users</div>
-                                    <div className="text-2xl font-bold text-slate-400">{users.filter(u => getUserStatus(u.username) === 'Inactive').length}</div>
-                                </div>
-                                <div className="bg-slate-800 p-4 rounded-lg">
-                                    <div className="text-slate-400 text-xs uppercase">Avg Prompts/User</div>
-                                    <div className="text-2xl font-bold text-blue-400">{(prompts.length / (users.length || 1)).toFixed(1)}</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                     )}
                 </div>
             </div>
