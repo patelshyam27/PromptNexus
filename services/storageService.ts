@@ -1,4 +1,4 @@
-import { Prompt, NewPromptInput, User, Feedback, AIModel } from '../types';
+import { Prompt, NewPromptInput, User, Feedback } from '../types';
 
 // Updated keys to v2 to ensure a fresh, clean database environment
 const USERS_KEY = 'promptnexus_users_v2';
@@ -74,7 +74,6 @@ export const deleteUser = (username: string): void => {
   const users = getAllUsers();
   if (!users.some(u => u.username === 'admin')) {
     const adminUser: User = {
-      id: 'admin-id-12345',
       username: 'admin',
       displayName: 'Admin',
       bio: 'System Administrator',
@@ -185,7 +184,6 @@ export const savePrompt = (input: NewPromptInput): Prompt => {
   const newPrompt: Prompt = {
     id: Date.now().toString(),
     ...input,
-    model: input.model as AIModel,
     viewCount: 0,
     copyCount: 0,
     rating: 0,
