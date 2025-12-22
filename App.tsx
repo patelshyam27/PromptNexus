@@ -278,6 +278,11 @@ function App() {
                     src={currentUser.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUser.username}`}
                     className="w-full h-full rounded-full bg-black object-cover"
                     alt={currentUser.username}
+                    onError={(e) => {
+                      const t = e.currentTarget;
+                      t.onerror = null;
+                      t.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUser.username}`;
+                    }}
                   />
                 </div>
               </div>

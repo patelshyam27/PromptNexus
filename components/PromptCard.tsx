@@ -170,6 +170,11 @@ const PromptCard: React.FC<PromptCardProps> = ({ prompt, currentUser, onRefresh,
               src={prompt.authorDetails?.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${prompt.author}`}
               className="w-full h-full rounded-full bg-slate-900 object-cover"
               alt={prompt.author}
+              onError={(e) => {
+                const t = e.currentTarget;
+                t.onerror = null; // Prevent infinite loop
+                t.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${prompt.author}`;
+              }}
             />
           </div>
           <div className="flex flex-col items-start">

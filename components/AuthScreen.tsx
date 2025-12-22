@@ -55,9 +55,9 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthSuccess }) => {
     const s = encodeURIComponent((seed || 'placeholder').trim());
     let url = `https://api.dicebear.com/7.x/avataaars/svg?seed=${s}`;
     if (genderType === 'male') {
-      url += `&top[]=shortHair&top[]=theCaesar&top[]=theCaesarSidePart&facialHairProbability=20&accessoriesProbability=0`;
+      url += `&top=shortHair,theCaesar,theCaesarSidePart&facialHairProbability=20&accessoriesProbability=0`;
     } else {
-      url += `&top[]=longHair&top[]=bob&top[]=straight01&facialHairProbability=0&accessoriesProbability=20`;
+      url += `&top=longHair,bob,straight01&facialHairProbability=0&accessoriesProbability=20`;
     }
     return url;
   };
